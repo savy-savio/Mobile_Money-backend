@@ -1,15 +1,13 @@
+import dotenv from 'dotenv';
+dotenv.config(); // ← move to very top, before ALL other imports
+
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { connectDB } from './config/database';
 import authRoutes from './routes/authRoutes';
 import settingsRoutes from './routes/settingsRoutes';
-import dns from 'dns';
-dns.setDefaultResultOrder('ipv4first');
 
-// Load environment variables
-dotenv.config();
-
+// remove the dns lines, no longer needed
 const app: Express = express();
 const PORT = process.env.PORT || 5000;
 
@@ -41,7 +39,6 @@ app.use((req: Request, res: Response) => {
 // Start server
 const startServer = async () => {
   try {
-    // Connect to MongoDB
     await connectDB();
 
     app.listen(PORT, () => {

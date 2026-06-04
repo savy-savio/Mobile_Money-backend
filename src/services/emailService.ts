@@ -1,7 +1,4 @@
-import nodemailer, { Transporter } from 'nodemailer';
-import { google } from 'googleapis';
-
-const OAuth2 = google.auth.OAuth2;
+import { Resend } from 'resend';
 
 interface EmailOptions {
   to: string;
@@ -10,83 +7,27 @@ interface EmailOptions {
 }
 
 class EmailService {
-  private transporter!: Transporter;
+  private resend: Resend;
 
-  private validateOAuth2Config(): void {
-    if (!process.env.GOOGLE_CLIENT_ID) {
-      throw new Error(
-        'GOOGLE_CLIENT_ID environment variable is not set. Please configure OAuth2 credentials.'
-      );
+  constructor() {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY environment variable is not set.');
     }
-    if (!process.env.GOOGLE_CLIENT_SECRET) {
-      throw new Error(
-        'GOOGLE_CLIENT_SECRET environment variable is not set. Please configure OAuth2 credentials.'
-      );
-    }
-    if (!process.env.GOOGLE_REFRESH_TOKEN) {
-      throw new Error(
-        'GOOGLE_REFRESH_TOKEN environment variable is not set. Run "npm run generate-oauth-token" to generate it.'
-      );
-    }
-    if (!process.env.EMAIL_USER) {
-      throw new Error(
-        'EMAIL_USER environment variable is not set. Please add your Gmail address.'
-      );
-    }
-  }
-
-  private async getTransporter() {
-    try {
-      // Validate all required OAuth2 variables
-      this.validateOAuth2Config();
-
-      const oauth2Client = new OAuth2(
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET,
-        'https://developers.google.com/oauthplayground'
-      );
-
-      oauth2Client.setCredentials({
-        refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
-      });
-
-      const { credentials } = await oauth2Client.refreshAccessToken();
-      const accessToken = credentials.access_token;
-
-      if (!accessToken) {
-        throw new Error('Failed to generate access token from refresh token');
-      }
-return nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  family: 4,
-  auth: {
-    type: 'OAuth2',
-    user: process.env.EMAIL_USER,
-    clientId: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
-    accessToken,
-  },
-} as nodemailer.TransportOptions);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('[EMAIL] Error creating transporter:', errorMessage);
-      throw error;
-    }
+    this.resend = new Resend(process.env.RESEND_API_KEY);
   }
 
   async sendEmail(options: EmailOptions): Promise<void> {
     try {
-      const transporter = await this.getTransporter();
-
-      await transporter.sendMail({
-        from: `${process.env.EMAIL_FROM_NAME || 'BankApp'} <${process.env.EMAIL_USER}>`,
+      const { error } = await this.resend.emails.send({
+        from: `${process.env.EMAIL_FROM_NAME || 'Crown Ledger'} <${process.env.EMAIL_FROM_ADDRESS || 'onboarding@resend.dev'}>`,
         to: options.to,
         subject: options.subject,
         html: options.html,
       });
+
+      if (error) {
+        throw new Error(error.message);
+      }
 
       console.log(`[EMAIL] Email sent to ${options.to}`);
     } catch (error) {
@@ -96,10 +37,7 @@ return nodemailer.createTransport({
     }
   }
 
-  generateVerificationEmailHtml(
-    fullName: string,
-    verificationLink: string
-  ): string {
+  generateVerificationEmailHtml(fullName: string, verificationLink: string): string {
     return `
       <!DOCTYPE html>
       <html>
@@ -148,10 +86,7 @@ return nodemailer.createTransport({
     `;
   }
 
-  generatePasswordResetEmailHtml(
-    fullName: string,
-    resetLink: string
-  ): string {
+  generatePasswordResetEmailHtml(fullName: string, resetLink: string): string {
     return `
       <!DOCTYPE html>
       <html>
@@ -235,7 +170,6 @@ return nodemailer.createTransport({
               <div class="content">
                 <h2>Welcome to Crown Ledger, ${fullName}!</h2>
                 <p>Your account has been successfully created and verified. You're now ready to explore all the features we have to offer.</p>
-                
                 <h3>What You Can Do:</h3>
                 <ul class="feature-list">
                   <li>Manage multiple account types</li>
@@ -244,7 +178,6 @@ return nodemailer.createTransport({
                   <li>Access your account 24/7</li>
                   <li>Enjoy premium banking features</li>
                 </ul>
-
                 <p>If you have any questions or need assistance, our support team is here to help you.</p>
               </div>
               <div class="footer">
@@ -292,13 +225,11 @@ return nodemailer.createTransport({
                 <h2>Login Notification</h2>
                 <p>Hi ${fullName},</p>
                 <p>Your Crown Ledger account was just accessed.</p>
-                
                 <div class="alert-box">
                   <p><strong>Login Details:</strong></p>
                   <p>Time: ${new Date().toLocaleString()}</p>
                   <p>If this wasn't you, please secure your account immediately by changing your password.</p>
                 </div>
-
                 <p>Your account security is important to us. If you notice any suspicious activity, please contact our support team right away.</p>
               </div>
               <div class="footer">
