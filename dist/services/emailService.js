@@ -35,19 +35,17 @@ class EmailService {
                 throw new Error('Failed to generate access token from refresh token');
             }
             return nodemailer_1.default.createTransport({
-                host: "smtp.gmail.com",
+                host: 'smtp.gmail.com',
                 port: 587,
                 secure: false,
+                family: 4,
                 auth: {
-                    type: "OAuth2",
+                    type: 'OAuth2',
                     user: process.env.EMAIL_USER,
                     clientId: process.env.GOOGLE_CLIENT_ID,
                     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
                     refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
                     accessToken,
-                },
-                tls: {
-                    rejectUnauthorized: false,
                 },
             });
         }
