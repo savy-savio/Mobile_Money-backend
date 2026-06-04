@@ -9,6 +9,8 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const database_1 = require("./config/database");
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const settingsRoutes_1 = __importDefault(require("./routes/settingsRoutes"));
+const dns_1 = __importDefault(require("dns"));
+dns_1.default.setDefaultResultOrder('ipv4first');
 // Load environment variables
 dotenv_1.default.config();
 const app = (0, express_1.default)();

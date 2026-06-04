@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import { connectDB } from './config/database';
 import authRoutes from './routes/authRoutes';
 import settingsRoutes from './routes/settingsRoutes';
+import dns from 'dns';
+dns.setDefaultResultOrder('ipv4first');
 
 // Load environment variables
 dotenv.config();
