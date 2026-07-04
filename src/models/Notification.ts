@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface INotification extends Document {
   userId: mongoose.Types.ObjectId;
-  type: 'signup' | 'login' | 'password_reset' | 'welcome' | 'security_alert';
+  type: 'signup' | 'login' | 'password_reset' | 'welcome' | 'security_alert' | 'investment_created' | 'payment_confirmed' | 'investment_matured';
   title: string;
   message: string;
   isRead: boolean;
@@ -10,6 +10,10 @@ export interface INotification extends Document {
     loginTime?: string;
     loginDevice?: string;
     resetTime?: string;
+    investmentId?: string;
+    investmentAmount?: number;
+    planName?: string;
+    paymentId?: string;
     [key: string]: any;
   };
   createdAt: Date;
@@ -26,7 +30,7 @@ const notificationSchema = new Schema<INotification>(
     },
     type: {
       type: String,
-      enum: ['signup', 'login', 'password_reset', 'welcome', 'security_alert'],
+      enum: ['signup', 'login', 'password_reset', 'welcome', 'security_alert', 'investment_created', 'payment_confirmed', 'investment_matured'],
       required: true,
     },
     title: {

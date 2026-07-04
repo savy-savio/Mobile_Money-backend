@@ -34,40 +34,61 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const notificationSchema = new mongoose_1.Schema({
-    userId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
-        index: true,
-    },
-    type: {
+const investmentPlanSchema = new mongoose_1.Schema({
+    name: {
         type: String,
-        enum: ['signup', 'login', 'password_reset', 'welcome', 'security_alert', 'investment_created', 'payment_confirmed', 'investment_matured'],
         required: true,
+        enum: ['Premium Plan', 'Exclusive Plan', 'Supreme Plan', 'Real Estate Plan', 'Agricultural Plan'],
     },
-    title: {
+    description: {
         type: String,
         required: true,
     },
-    message: {
-        type: String,
+    minInvestment: {
+        type: Number,
         required: true,
     },
-    isRead: {
-        type: Boolean,
-        default: false,
-        index: true,
+    duration: {
+        type: Number,
+        required: true,
     },
-    data: {
-        type: mongoose_1.Schema.Types.Mixed,
-        default: {},
+    riskLevel: {
+        type: String,
+        required: true,
+        enum: ['Low', 'Medium', 'High'],
     },
-}, {
-    timestamps: true,
-});
-// Index for efficient queries
-notificationSchema.index({ userId: 1, createdAt: -1 });
-notificationSchema.index({ userId: 1, isRead: 1 });
-const Notification = mongoose_1.default.model('Notification', notificationSchema);
-exports.default = Notification;
+    expectedReturn: {
+        type: Number,
+        required: true,
+    },
+    assetAllocation: {
+        equities: {
+            type: Number,
+            required: true,
+            default: 0,
+        },
+        realEstate: {
+            type: Number,
+            required: true,
+            default: 0,
+        },
+        agriculture: {
+            type: Number,
+            required: true,
+            default: 0,
+        },
+        bonds: {
+            type: Number,
+            required: true,
+            default: 0,
+        },
+    },
+    status: {
+        type: String,
+        required: true,
+        enum: ['active', 'inactive'],
+        default: 'active',
+    },
+}, { timestamps: true });
+exports.default = mongoose_1.default.models.InvestmentPlan ||
+    mongoose_1.default.model('InvestmentPlan', investmentPlanSchema);

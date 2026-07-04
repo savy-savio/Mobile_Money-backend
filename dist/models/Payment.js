@@ -34,40 +34,78 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const notificationSchema = new mongoose_1.Schema({
+const paymentSchema = new mongoose_1.Schema({
     userId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'User',
+        type: String,
         required: true,
         index: true,
     },
-    type: {
-        type: String,
-        enum: ['signup', 'login', 'password_reset', 'welcome', 'security_alert', 'investment_created', 'payment_confirmed', 'investment_matured'],
+    investmentId: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'UserInvestment',
         required: true,
     },
-    title: {
-        type: String,
+    amount: {
+        type: Number,
         required: true,
     },
-    message: {
+    currency: {
         type: String,
         required: true,
+        default: 'USD',
     },
-    isRead: {
-        type: Boolean,
-        default: false,
+    paymentReference: {
+        type: String,
+        required: true,
+        unique: true,
         index: true,
     },
-    data: {
-        type: mongoose_1.Schema.Types.Mixed,
-        default: {},
+    paymentMethod: {
+        type: String,
+        required: true,
+        enum: ['cashapp', 'bitcoin'],
+        default: 'cashapp',
     },
-}, {
-    timestamps: true,
-});
-// Index for efficient queries
-notificationSchema.index({ userId: 1, createdAt: -1 });
-notificationSchema.index({ userId: 1, isRead: 1 });
-const Notification = mongoose_1.default.model('Notification', notificationSchema);
-exports.default = Notification;
+    // Cash App fields
+    cashAppTransactionId: {
+        type: String,
+    },
+    cashAppTag: {
+        type: String,
+        default: '$davechar1997',
+    },
+    // Bitcoin fields
+    bitcoinAddress: {
+        type: String,
+    },
+    bitcoinAmountUSD: {
+        type: Number,
+    },
+    bitcoinAmountBTC: {
+        type: Number,
+    },
+    bitcoinTransactionHash: {
+        type: String,
+    },
+    bitcoinConfirmations: {
+        type: Number,
+        default: 0,
+    },
+    status: {
+        type: String,
+        required: true,
+        enum: ['pending', 'completed', 'failed', 'cancelled'],
+        default: 'pending',
+    },
+    verifiedAt: {
+        type: Date,
+    },
+    verificationNotes: {
+        type: String,
+    },
+    errorMessage: {
+        type: String,
+    },
+}, { timestamps: true });
+exports.default = mongoose_1.default.models.Payment ||
+    mongoose_1.default.model('Payment', paymentSchema);

@@ -133,6 +133,12 @@ const userSchema = new mongoose_1.Schema({
     profilePhoto: {
         type: String,
     },
+    // Investments
+    investments: {
+        type: [mongoose_1.Schema.Types.ObjectId],
+        ref: 'UserInvestment',
+        default: [],
+    },
     // Metadata
     agreedToTerms: {
         type: Boolean,

@@ -34,6 +34,9 @@ export interface IUser extends Document {
   dateOfBirth?: Date;
   profilePhoto?: string;
 
+  // Investments
+  investments?: mongoose.Types.ObjectId[]; // References to UserInvestment documents
+
   // Metadata
   agreedToTerms: boolean;
   createdAt: Date;
@@ -146,6 +149,13 @@ const userSchema = new Schema<IUser>(
     },
     profilePhoto: {
       type: String,
+    },
+
+    // Investments
+    investments: {
+      type: [Schema.Types.ObjectId],
+      ref: 'UserInvestment',
+      default: [],
     },
 
     // Metadata

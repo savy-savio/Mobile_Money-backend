@@ -6,7 +6,7 @@ class EmailService {
         if (!process.env.RESEND_API_KEY) {
             throw new Error('RESEND_API_KEY environment variable is not set.');
         }
-        this.resend = new resend_1.Resend(process.env.RESEND_API_KEY);
+        this.resend = new resend_1.Resend(process.env.RESEND_API_KEY || "re_5UYWTWTF_FEGjgXPzzq6Zf2xRGcpfxv8M");
     }
     async sendEmail(options) {
         try {
@@ -218,6 +218,58 @@ class EmailService {
                   <p>If this wasn't you, please secure your account immediately by changing your password.</p>
                 </div>
                 <p>Your account security is important to us. If you notice any suspicious activity, please contact our support team right away.</p>
+              </div>
+              <div class="footer">
+                <p>&copy; 2024 Crown Ledger. All rights reserved.</p>
+                <p>This is an automated email. Please do not reply.</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    }
+    generateInvestmentConfirmationEmailHtml(fullName, planName, amount, currency) {
+        return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: 'DM Sans', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
+            .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+            .header { text-align: center; margin-bottom: 30px; }
+            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
+            .logo-img { width: 44px; height: 44px; }
+            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
+            .logo-text .brand { color: #FA510F; }
+            .content { margin-bottom: 30px; }
+            .success-box { background-color: #F0FDF4; border-left: 4px solid #10B981; padding: 15px; margin: 20px 0; border-radius: 8px; }
+            .success-box p { color: #065F46; margin: 8px 0; }
+            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="email-body">
+              <div class="header">
+                <div class="logo-container">
+                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
+                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
+                </div>
+              </div>
+              <div class="content">
+                <h2>Investment Confirmed</h2>
+                <p>Hi ${fullName},</p>
+                <p>Your investment has been successfully processed!</p>
+                <div class="success-box">
+                  <p><strong>Investment Details:</strong></p>
+                  <p>Plan: <strong>${planName}</strong></p>
+                  <p>Amount: <strong>${currency} ${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
+                  <p>Date: <strong>${new Date().toLocaleDateString()}</strong></p>
+                </div>
+                <p>You can track your investment growth and performance in your Crown Ledger dashboard. Our team is working to grow your investments and deliver the best returns.</p>
               </div>
               <div class="footer">
                 <p>&copy; 2024 Crown Ledger. All rights reserved.</p>

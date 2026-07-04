@@ -34,40 +34,79 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const notificationSchema = new mongoose_1.Schema({
-    userId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'User',
+const monthlyPerformanceSchema = new mongoose_1.Schema({
+    month: {
+        type: Number,
         required: true,
-        index: true,
+        min: 1,
+        max: 12,
     },
-    type: {
-        type: String,
-        enum: ['signup', 'login', 'password_reset', 'welcome', 'security_alert', 'investment_created', 'payment_confirmed', 'investment_matured'],
-        required: true,
-    },
-    title: {
-        type: String,
+    year: {
+        type: Number,
         required: true,
     },
-    message: {
-        type: String,
+    value: {
+        type: Number,
         required: true,
     },
-    isRead: {
-        type: Boolean,
-        default: false,
-        index: true,
+    return: {
+        type: Number,
+        required: true,
     },
-    data: {
-        type: mongoose_1.Schema.Types.Mixed,
-        default: {},
-    },
-}, {
-    timestamps: true,
 });
-// Index for efficient queries
-notificationSchema.index({ userId: 1, createdAt: -1 });
-notificationSchema.index({ userId: 1, isRead: 1 });
-const Notification = mongoose_1.default.model('Notification', notificationSchema);
-exports.default = Notification;
+const userInvestmentSchema = new mongoose_1.Schema({
+    userId: {
+        type: String,
+        required: true,
+        index: true,
+    },
+    planId: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'InvestmentPlan',
+        required: true,
+    },
+    planName: {
+        type: String,
+        required: true,
+    },
+    amountInvested: {
+        type: Number,
+        required: true,
+    },
+    currentValue: {
+        type: Number,
+        required: true,
+    },
+    totalGain: {
+        type: Number,
+        required: true,
+        default: 0,
+    },
+    gainPercentage: {
+        type: Number,
+        required: true,
+        default: 0,
+    },
+    monthlyPerformance: [monthlyPerformanceSchema],
+    investmentDate: {
+        type: Date,
+        required: true,
+        default: Date.now,
+    },
+    maturityDate: {
+        type: Date,
+        required: true,
+    },
+    status: {
+        type: String,
+        required: true,
+        enum: ['active', 'completed', 'cancelled'],
+        default: 'active',
+    },
+    stripePaymentId: {
+        type: String,
+        sparse: true,
+    },
+}, { timestamps: true });
+exports.default = mongoose_1.default.models.UserInvestment ||
+    mongoose_1.default.model('UserInvestment', userInvestmentSchema);
