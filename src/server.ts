@@ -77,6 +77,8 @@ import settingsRoutes from './routes/settingsRoutes';
 import investmentService from './services/investmentService';
 // import stripeWebhookController from './controllers/stripeWebhookController';
 import paymentRoutes from './routes/paymentRoutes';
+import savingsRoutes from './routes/savingsRoute';
+import DailyGrowthJob from './jobs/dailyGrowthJobs';
 
 
 const app: Express = express();
@@ -144,6 +146,8 @@ app.use('/api/dashboard', dashboardRoutes);
 
 app.use('/api/payments', paymentRoutes);
 
+app.use('/api/savings', savingsRoutes);
+
 // 404 handler
 app.use((req: Request, res: Response) => {
   res.status(404).json({
@@ -154,6 +158,8 @@ app.use((req: Request, res: Response) => {
 
 // Error handling middleware
 // app.use(errorHandler);
+
+DailyGrowthJob.start();
 
 // Start server
 app.listen(PORT, () => {

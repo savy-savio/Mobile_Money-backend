@@ -1,6 +1,7 @@
 import InvestmentPlan, { IInvestmentPlan } from '../models/InvestmentPlan';
 import UserInvestment, { IUserInvestment } from '../models/UserInvestment';
 import Payment from '../models/Payment';
+import savingsService from './savingsService';
 import mongoose from 'mongoose';
 
 export class InvestmentService {
@@ -71,7 +72,8 @@ export class InvestmentService {
       planId: new mongoose.Types.ObjectId(planId),
       planName: plan.name,
       amountInvested: amount,
-      currentValue: finalValue,
+      currentValue: amount, // Start with invested amount
+      gain: 0,
       totalGain,
       gainPercentage,
       monthlyPerformance,
@@ -82,6 +84,11 @@ export class InvestmentService {
     });
 
     await investment.save();
+
+    // Ensure user has savings account
+    await savingsService.createSavingsAccount(userId);
+
+    console.log(`[INVESTMENT] Created investment of $${amount} for user ${userId}`);
     return investment;
   }
 
@@ -135,7 +142,7 @@ export class InvestmentService {
     const performanceMap = new Map<string, number>();
 
     investments.forEach((investment) => {
-      investment.monthlyPerformance.forEach((perf: any) => {
+      investment.monthlyPerformance.forEach((perf) => {
         const key = `${perf.year}-${String(perf.month).padStart(2, '0')}`;
         const currentValue = performanceMap.get(key) || 0;
         performanceMap.set(key, currentValue + perf.value);
