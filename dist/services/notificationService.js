@@ -3,173 +3,171 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.NotificationService = void 0;
 const Notification_1 = __importDefault(require("../models/Notification"));
-const User_1 = __importDefault(require("../models/User"));
-const emailService_1 = __importDefault(require("./emailService"));
+const NotificationPreference_1 = __importDefault(require("../models/NotificationPreference"));
 class NotificationService {
     /**
-     * Create notification and optionally send email
+     * Create a new notification for a user
      */
-    async createNotification(payload) {
+    static async createNotification(userId, type, title, message, data) {
         try {
-            // Create in-app notification
-            const notification = await Notification_1.default.create({
-                userId: payload.userId,
-                type: payload.type,
-                title: payload.title,
-                message: payload.message,
-                data: payload.data || {},
-            });
-            // Send email if requested
-            if (payload.sendEmail) {
-                const user = await User_1.default.findById(payload.userId);
-                if (user) {
-                    await this.sendNotificationEmail(user, payload.type, payload.data);
-                }
+            // Check user preference for this notification type
+            const preference = await NotificationPreference_1.default.findOne({ userId });
+            // Map notification type to preference field
+            const preferenceField = this.getPreferenceField(type);
+            // If preference exists and user disabled this type, don't create notification
+            if (preference &&
+                preferenceField &&
+                !preference[preferenceField]) {
+                return null;
             }
-            return notification;
+            const notification = new Notification_1.default({
+                userId,
+                type,
+                title,
+                message,
+                data: data || {},
+                isRead: false,
+            });
+            return await notification.save();
         }
         catch (error) {
-            console.error('[NOTIFICATION] Error creating notification:', error);
+            console.error('[v0] Error creating notification:', error);
             throw error;
         }
     }
     /**
-     * Get user notifications
+     * Get all notifications for a user with pagination
      */
-    async getUserNotifications(userId, limit = 50, skip = 0) {
+    static async getNotifications(userId, page = 1, limit = 20) {
         try {
-            return await Notification_1.default.find({ userId })
-                .sort({ createdAt: -1 })
-                .limit(limit)
-                .skip(skip);
+            const skip = (page - 1) * limit;
+            const [notifications, total] = await Promise.all([
+                Notification_1.default.find({ userId })
+                    .sort({ createdAt: -1 })
+                    .skip(skip)
+                    .limit(limit)
+                    .lean(),
+                Notification_1.default.countDocuments({ userId }),
+            ]);
+            return {
+                notifications,
+                total,
+                pages: Math.ceil(total / limit),
+            };
         }
         catch (error) {
-            console.error('[NOTIFICATION] Error fetching notifications:', error);
-            throw error;
-        }
-    }
-    /**
-     * Mark notification as read
-     */
-    async markAsRead(notificationId) {
-        try {
-            return await Notification_1.default.findByIdAndUpdate(notificationId, { isRead: true }, { new: true });
-        }
-        catch (error) {
-            console.error('[NOTIFICATION] Error marking notification as read:', error);
-            throw error;
-        }
-    }
-    /**
-     * Mark all notifications as read
-     */
-    async markAllAsRead(userId) {
-        try {
-            return await Notification_1.default.updateMany({ userId, isRead: false }, { isRead: true });
-        }
-        catch (error) {
-            console.error('[NOTIFICATION] Error marking all notifications as read:', error);
+            console.error('[v0] Error fetching notifications:', error);
             throw error;
         }
     }
     /**
      * Get unread notification count
      */
-    async getUnreadCount(userId) {
+    static async getUnreadCount(userId) {
         try {
-            return await Notification_1.default.countDocuments({ userId, isRead: false });
+            return await Notification_1.default.countDocuments({
+                userId,
+                isRead: false,
+            });
         }
         catch (error) {
-            console.error('[NOTIFICATION] Error counting unread notifications:', error);
+            console.error('[v0] Error getting unread count:', error);
             throw error;
         }
     }
     /**
-     * Send notification email
+     * Mark a notification as read
      */
-    async sendNotificationEmail(user, type, data) {
+    static async markAsRead(notificationId, userId) {
         try {
-            const fullName = `${user.firstName} ${user.lastName}`;
-            let html = '';
-            let subject = '';
-            switch (type) {
-                case 'payment_confirmed':
-                    subject = `Investment Confirmed - Crown Ledger ${data?.planName}`;
-                    html = emailService_1.default.generateInvestmentConfirmationEmailHtml(fullName, data?.planName || 'Investment', data?.investmentAmount || 0, user.currency || 'USD');
-                    break;
-                case 'investment_created':
-                    subject = 'New Investment Created - Crown Ledger';
-                    html = emailService_1.default.generateInvestmentConfirmationEmailHtml(fullName, data?.planName || 'Investment', data?.investmentAmount || 0, user.currency || 'USD');
-                    break;
-                case 'investment_matured':
-                    subject = 'Investment Matured - Crown Ledger';
-                    html = `
-            <!DOCTYPE html>
-            <html>
-              <head>
-                <meta charset="UTF-8">
-                <style>
-                  body { font-family: 'DM Sans', Arial, sans-serif; line-height: 1.6; color: #333; }
-                  .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
-                  .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
-                  .header { text-align: center; margin-bottom: 30px; }
-                  .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
-                  .logo-img { width: 44px; height: 44px; }
-                  .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
-                  .logo-text .brand { color: #FA510F; }
-                  .content { margin-bottom: 30px; }
-                  .success-box { background-color: #F0FDF4; border-left: 4px solid #10B981; padding: 15px; margin: 20px 0; border-radius: 8px; }
-                  .success-box p { color: #065F46; margin: 8px 0; }
-                  .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
-                </style>
-              </head>
-              <body>
-                <div class="container">
-                  <div class="email-body">
-                    <div class="header">
-                      <div class="logo-container">
-                        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
-                        <div class="logo-text">Crown <span class="brand">Ledger</span></div>
-                      </div>
-                    </div>
-                    <div class="content">
-                      <h2>Your Investment Has Matured</h2>
-                      <p>Hi ${fullName},</p>
-                      <p>Great news! Your investment has reached its maturity date.</p>
-                      <div class="success-box">
-                        <p><strong>Investment Maturity Details:</strong></p>
-                        <p>Plan: <strong>${data?.planName}</strong></p>
-                        <p>Total Value: <strong>${user.currency} ${(data?.totalValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
-                        <p>Gains: <strong>${user.currency} ${(data?.gains || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
-                      </div>
-                      <p>You can now reinvest or withdraw your funds. Visit your Crown Ledger dashboard to manage your investments.</p>
-                    </div>
-                    <div class="footer">
-                      <p>&copy; 2024 Crown Ledger. All rights reserved.</p>
-                      <p>This is an automated email. Please do not reply.</p>
-                    </div>
-                  </div>
-                </div>
-              </body>
-            </html>
-          `;
-                    break;
-                default:
-                    return; // Don't send email for unknown types
-            }
-            if (html && subject) {
-                await emailService_1.default.sendEmail({
-                    to: user.email,
-                    subject,
-                    html,
-                });
-            }
+            return await Notification_1.default.findOneAndUpdate({ _id: notificationId, userId }, { isRead: true }, { new: true });
         }
         catch (error) {
-            console.error('[NOTIFICATION] Error sending notification email:', error);
-            // Don't throw - notifications should not fail if email fails
+            console.error('[v0] Error marking notification as read:', error);
+            throw error;
         }
     }
+    /**
+     * Mark all notifications as read for a user
+     */
+    static async markAllAsRead(userId) {
+        try {
+            const result = await Notification_1.default.updateMany({ userId, isRead: false }, { isRead: true });
+            return result.modifiedCount;
+        }
+        catch (error) {
+            console.error('[v0] Error marking all as read:', error);
+            throw error;
+        }
+    }
+    /**
+     * Get or create notification preferences for a user
+     */
+    static async getOrCreatePreferences(userId) {
+        try {
+            let preference = await NotificationPreference_1.default.findOne({ userId });
+            if (!preference) {
+                preference = new NotificationPreference_1.default({
+                    userId,
+                    signup: true,
+                    login: true,
+                    passwordReset: true,
+                    welcome: true,
+                    securityAlert: true,
+                });
+                await preference.save();
+            }
+            return preference;
+        }
+        catch (error) {
+            console.error('[v0] Error getting/creating preferences:', error);
+            throw error;
+        }
+    }
+    /**
+     * Update notification preferences
+     */
+    static async updatePreferences(userId, preferences) {
+        try {
+            return await NotificationPreference_1.default.findOneAndUpdate({ userId }, preferences, { new: true, upsert: true });
+        }
+        catch (error) {
+            console.error('[v0] Error updating preferences:', error);
+            throw error;
+        }
+    }
+    /**
+     * Delete old notifications (older than 30 days)
+     */
+    static async deleteOldNotifications(daysOld = 30) {
+        try {
+            const date = new Date();
+            date.setDate(date.getDate() - daysOld);
+            const result = await Notification_1.default.deleteMany({
+                createdAt: { $lt: date },
+            });
+            return result.deletedCount;
+        }
+        catch (error) {
+            console.error('[v0] Error deleting old notifications:', error);
+            throw error;
+        }
+    }
+    /**
+     * Helper: Get preference field name from notification type
+     */
+    static getPreferenceField(type) {
+        const fieldMap = {
+            signup: 'signup',
+            login: 'login',
+            password_reset: 'passwordReset',
+            welcome: 'welcome',
+            security_alert: 'securityAlert',
+        };
+        return fieldMap[type];
+    }
 }
-exports.default = new NotificationService();
+exports.NotificationService = NotificationService;
+exports.default = NotificationService;

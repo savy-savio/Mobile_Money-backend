@@ -157,7 +157,7 @@ export class DashboardController {
 
         investments.forEach((investment) => {
           const perf = investment.monthlyPerformance.find(
-            (p) => p.month === month && p.year === currentYear
+            (p: any) => p.month === month && p.year === currentYear
           );
           if (perf) {
             totalValue += perf.value;

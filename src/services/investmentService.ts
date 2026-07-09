@@ -142,7 +142,7 @@ export class InvestmentService {
     const performanceMap = new Map<string, number>();
 
     investments.forEach((investment) => {
-      investment.monthlyPerformance.forEach((perf) => {
+      investment.monthlyPerformance.forEach((perf: any) => {
         const key = `${perf.year}-${String(perf.month).padStart(2, '0')}`;
         const currentValue = performanceMap.get(key) || 0;
         performanceMap.set(key, currentValue + perf.value);

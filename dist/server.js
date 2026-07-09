@@ -81,9 +81,25 @@ const PORT = process.env.BACKEND_PORT || 5000;
 //     stripeWebhookController.handleWebhook(req, res)
 // );
 // Middleware
+const allowedOrigins = [
+    "http://localhost:5173", // Local Vite
+    "http://localhost:3000", // Optional
+    "https://crownledger360.com", // Production
+];
 app.use((0, cors_1.default)({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+        // Allow requests without an Origin header (Postman, mobile apps, etc.)
+        if (!origin) {
+            return callback(null, true);
+        }
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error(`Origin ${origin} is not allowed by CORS`));
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
 }));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
