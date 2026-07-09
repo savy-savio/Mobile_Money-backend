@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.InvestmentService = void 0;
 const InvestmentPlan_1 = __importDefault(require("../models/InvestmentPlan"));
 const UserInvestment_1 = __importDefault(require("../models/UserInvestment"));
+const savingsService_1 = __importDefault(require("./savingsService"));
 const mongoose_1 = __importDefault(require("mongoose"));
 class InvestmentService {
     /**
@@ -60,7 +61,8 @@ class InvestmentService {
             planId: new mongoose_1.default.Types.ObjectId(planId),
             planName: plan.name,
             amountInvested: amount,
-            currentValue: finalValue,
+            currentValue: amount, // Start with invested amount
+            gain: 0,
             totalGain,
             gainPercentage,
             monthlyPerformance,
@@ -70,6 +72,9 @@ class InvestmentService {
             stripePaymentId,
         });
         await investment.save();
+        // Ensure user has savings account
+        await savingsService_1.default.createSavingsAccount(userId);
+        console.log(`[INVESTMENT] Created investment of $${amount} for user ${userId}`);
         return investment;
     }
     /**

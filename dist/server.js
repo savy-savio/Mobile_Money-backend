@@ -69,6 +69,8 @@ const settingsRoutes_1 = __importDefault(require("./routes/settingsRoutes"));
 const investmentService_1 = __importDefault(require("./services/investmentService"));
 // import stripeWebhookController from './controllers/stripeWebhookController';
 const paymentRoutes_1 = __importDefault(require("./routes/paymentRoutes"));
+const savingsRoute_1 = __importDefault(require("./routes/savingsRoute"));
+const dailyGrowthJobs_1 = __importDefault(require("./jobs/dailyGrowthJobs"));
 const app = (0, express_1.default)();
 const PORT = process.env.BACKEND_PORT || 5000;
 // Stripe webhook route - must be BEFORE express.json() middleware
@@ -123,6 +125,7 @@ app.use('/api/investments', investmentRoutes_1.default);
 // Dashboard routes
 app.use('/api/dashboard', dashboardRoutes_1.default);
 app.use('/api/payments', paymentRoutes_1.default);
+app.use('/api/savings', savingsRoute_1.default);
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({
@@ -132,6 +135,7 @@ app.use((req, res) => {
 });
 // Error handling middleware
 // app.use(errorHandler);
+dailyGrowthJobs_1.default.start();
 // Start server
 app.listen(PORT, () => {
     console.log(`Investment Backend running on port ${PORT}`);

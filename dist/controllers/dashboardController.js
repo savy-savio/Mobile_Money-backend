@@ -5,10 +5,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DashboardController = void 0;
 const investmentService_1 = __importDefault(require("../services/investmentService"));
+const dashboardService_1 = __importDefault(require("../services/dashboardService"));
+const savingsService_1 = __importDefault(require("../services/savingsService"));
 const UserInvestment_1 = __importDefault(require("../models/UserInvestment"));
 class DashboardController {
     /**
-     * Get complete dashboard data
+     * Get complete dashboard data with balances and savings
      */
     async getDashboardData(req, res) {
         try {
@@ -21,19 +23,24 @@ class DashboardController {
                 return;
             }
             // Fetch all dashboard data in parallel
-            const [portfolioSummary, performance, allocation, investments] = await Promise.all([
+            const [portfolioSummary, performance, allocation, investments, dashboardSummary] = await Promise.all([
                 investmentService_1.default.getPortfolioSummary(userId),
                 investmentService_1.default.getPortfolioPerformance(userId),
                 investmentService_1.default.getAssetAllocation(userId),
                 investmentService_1.default.getUserInvestments(userId),
+                dashboardService_1.default.getDashboardSummary(userId),
             ]);
             res.status(200).json({
                 success: true,
                 data: {
+                    balances: dashboardSummary.balances,
+                    investments: dashboardSummary.investments,
+                    savings: dashboardSummary.savings,
+                    dailyGrowth: dashboardSummary.dailyGrowth,
                     portfolioSummary,
                     performance,
                     allocation,
-                    investments,
+                    investmentsList: investments,
                 },
             });
         }
@@ -231,6 +238,87 @@ class DashboardController {
             res.status(200).json({
                 success: true,
                 data: breakdown,
+            });
+        }
+        catch (error) {
+            const err = error;
+            res.status(500).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+    /**
+     * Get account balance summary (investments + savings)
+     */
+    async getAccountBalance(req, res) {
+        try {
+            const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+            if (!userId) {
+                res.status(400).json({
+                    success: false,
+                    message: 'User ID is required',
+                });
+                return;
+            }
+            const summary = await dashboardService_1.default.getDashboardSummary(userId);
+            res.status(200).json({
+                success: true,
+                data: summary.balances,
+            });
+        }
+        catch (error) {
+            const err = error;
+            res.status(500).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+    /**
+     * Get savings account details
+     */
+    async getSavingsDetails(req, res) {
+        try {
+            const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+            if (!userId) {
+                res.status(400).json({
+                    success: false,
+                    message: 'User ID is required',
+                });
+                return;
+            }
+            const savingsDetails = await savingsService_1.default.getSavingsDetails(userId);
+            res.status(200).json({
+                success: true,
+                data: savingsDetails,
+            });
+        }
+        catch (error) {
+            const err = error;
+            res.status(500).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+    /**
+     * Get daily growth summary
+     */
+    async getDailyGrowth(req, res) {
+        try {
+            const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+            if (!userId) {
+                res.status(400).json({
+                    success: false,
+                    message: 'User ID is required',
+                });
+                return;
+            }
+            const dailyGrowth = await dashboardService_1.default.getDailyGrowthSummary(userId);
+            res.status(200).json({
+                success: true,
+                data: dailyGrowth,
             });
         }
         catch (error) {
