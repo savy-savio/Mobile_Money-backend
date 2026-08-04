@@ -6,7 +6,7 @@ class EmailService {
         if (!process.env.RESEND_API_KEY) {
             throw new Error('RESEND_API_KEY environment variable is not set.');
         }
-        this.resend = new resend_1.Resend(process.env.RESEND_API_KEY || "re_5UYWTWTF_FEGjgXPzzq6Zf2xRGcpfxv8M");
+        this.resend = new resend_1.Resend(process.env.RESEND_API_KEY);
     }
     async sendEmail(options) {
         try {
