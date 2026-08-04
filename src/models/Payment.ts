@@ -2,7 +2,10 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IPayment extends Document {
   userId: string;
-  investmentId: mongoose.Types.ObjectId;
+  planId?: mongoose.Types.ObjectId; // Investment plan ID (optional for savings)
+  investmentId?: mongoose.Types.ObjectId;
+  savingsPlanId?: string; // Savings plan ID (for plan-specific deposits)
+  savingsPlanName?: string; // Savings plan name (for reference)
   amount: number;
   currency: string;
   paymentReference: string; // Unique reference for payment
@@ -34,10 +37,28 @@ const paymentSchema = new Schema<IPayment>(
       required: true,
       index: true,
     },
+    planId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'InvestmentPlan',
+      required: false,
+      default: null,
+    },
     investmentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'UserInvestment',
-      required: true,
+      default: null,
+      required: false,
+    },
+    savingsPlanId: {
+      type: String,
+      required: false,
+      default: null,
+      index: true,
+    },
+    savingsPlanName: {
+      type: String,
+      required: false,
+      default: null,
     },
     amount: {
       type: Number,
@@ -58,7 +79,7 @@ const paymentSchema = new Schema<IPayment>(
       type: String,
       required: true,
       enum: ['cashapp', 'bitcoin'],
-      default: 'cashapp',
+      default: 'bitcoin',
     },
     // Cash App fields
     cashAppTransactionId: {
@@ -80,6 +101,9 @@ const paymentSchema = new Schema<IPayment>(
     },
     bitcoinTransactionHash: {
       type: String,
+      unique: true,
+      sparse: true, // Allows multiple null values
+      index: true,
     },
     bitcoinConfirmations: {
       type: Number,

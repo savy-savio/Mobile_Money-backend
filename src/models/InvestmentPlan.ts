@@ -72,7 +72,7 @@ const investmentPlanSchema = new Schema<IInvestmentPlan>(
       type: String,
       required: true,
       enum: ['active', 'inactive'],
-      default: 'active',
+      default: 'inactive',
     },
   },
   { timestamps: true }

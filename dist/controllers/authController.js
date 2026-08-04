@@ -276,11 +276,30 @@ class AuthController {
                 userId: user._id.toString(),
                 email: user.email,
             });
+            // Optional: Rotate refresh token for better security
+            const newRefreshToken = tokenService_1.default.generateRefreshToken({
+                userId: user._id.toString(),
+                email: user.email,
+            });
+            // Replace old refresh token with new one
+            const tokenIndex = user.refreshTokens.indexOf(refreshToken);
+            if (tokenIndex > -1) {
+                user.refreshTokens[tokenIndex] = newRefreshToken;
+            }
+            else {
+                user.refreshTokens.push(newRefreshToken);
+            }
+            // Keep only last 5 tokens
+            if (user.refreshTokens.length > 5) {
+                user.refreshTokens = user.refreshTokens.slice(-5);
+            }
+            await user.save();
             res.status(200).json({
                 success: true,
                 message: 'Token refreshed successfully',
                 data: {
                     accessToken: newAccessToken,
+                    refreshToken: newRefreshToken, // Return new refresh token for rotation
                 },
             });
         }
@@ -389,6 +408,83 @@ class AuthController {
             res.status(500).json({
                 success: false,
                 message: error.message || 'Error resetting password',
+            });
+        }
+    }
+    // CHANGE PASSWORD (Authenticated user changes password)
+    static async changePassword(req, res) {
+        try {
+            const { oldPassword, newPassword, confirmPassword } = req.body;
+            const userId = req.userId; // From JWT middleware
+            // Validate all required fields
+            if (!oldPassword || !newPassword || !confirmPassword) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Old password, new password, and confirm password are required',
+                });
+                return;
+            }
+            // Check if user is authenticated
+            if (!userId) {
+                res.status(401).json({ success: false, message: 'User not authenticated' });
+                return;
+            }
+            // Find user with password field selected
+            const user = await User_1.default.findById(userId).select('+password');
+            if (!user) {
+                res.status(404).json({ success: false, message: 'User not found' });
+                return;
+            }
+            // Verify old password
+            const isOldPasswordCorrect = await helpers_1.PasswordUtils.comparePassword(oldPassword, user.password);
+            if (!isOldPasswordCorrect) {
+                res.status(401).json({ success: false, message: 'Old password is incorrect' });
+                return;
+            }
+            // Validate new password
+            const passwordValidation = helpers_1.PasswordUtils.validatePassword(newPassword);
+            if (!passwordValidation.isValid) {
+                res.status(400).json({ success: false, message: passwordValidation.message });
+                return;
+            }
+            // Check if new password matches old password
+            const isSamePassword = await helpers_1.PasswordUtils.comparePassword(newPassword, user.password);
+            if (isSamePassword) {
+                res.status(400).json({
+                    success: false,
+                    message: 'New password cannot be the same as old password',
+                });
+                return;
+            }
+            // Check if new password and confirm password match
+            if (newPassword !== confirmPassword) {
+                res.status(400).json({ success: false, message: 'New passwords do not match' });
+                return;
+            }
+            // Hash new password
+            const hashedPassword = await helpers_1.PasswordUtils.hashPassword(newPassword);
+            // Update user password and clear refresh tokens for security
+            user.password = hashedPassword;
+            user.refreshTokens = []; // Force re-login on all devices
+            await user.save();
+            // Send password change notification email
+            const fullName = `${user.firstName} ${user.lastName}`;
+            const emailHtml = emailService_1.default.generatePasswordChangeEmailHtml(fullName);
+            await emailService_1.default.sendEmail({
+                to: user.email,
+                subject: 'Password Changed Successfully - BankApp',
+                html: emailHtml,
+            });
+            res.status(200).json({
+                success: true,
+                message: 'Password changed successfully. Please login again on all devices.',
+            });
+        }
+        catch (error) {
+            console.error('[AUTH] Change password error:', error);
+            res.status(500).json({
+                success: false,
+                message: error.message || 'Error changing password',
             });
         }
     }

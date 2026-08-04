@@ -15,36 +15,42 @@ export class CashAppService {
   /**
    * Create payment request
    */
-  async createPaymentRequest(
-    userId: string,
-    investmentId: string,
-    amount: number,
-    planName: string
-  ) {
-    const paymentReference = this.generatePaymentReference();
+ async createPaymentRequest(
+  userId: string,
+  investmentId?: string,
+  amount?: number,
+  planName?: string
+) {
+  const paymentReference = this.generatePaymentReference();
 
-    const payment = new Payment({
-      userId,
-      investmentId: new mongoose.Types.ObjectId(investmentId),
-      amount,
-      currency: 'USD',
-      paymentReference,
-      cashAppTag: this.CASHAPP_TAG,
-      status: 'pending',
-      paymentMethod: 'cashapp',
-    });
+  const paymentData: any = {
+    userId,
+    amount,
+    currency: 'USD',
+    paymentReference,
+    cashAppTag: this.CASHAPP_TAG,
+    status: 'pending',
+    paymentMethod: 'cashapp',
+  };
 
-    await payment.save();
-
-    return {
-      paymentId: payment._id,
-      paymentReference,
-      cashAppTag: this.CASHAPP_TAG,
-      amount,
-      planName,
-      instructions: `Send $${amount} to ${this.CASHAPP_TAG} with payment reference: ${paymentReference}`,
-    };
+  // Only add investmentId if it exists
+  if (investmentId) {
+    paymentData.investmentId = new mongoose.Types.ObjectId(investmentId);
   }
+
+  const payment = new Payment(paymentData);
+
+  await payment.save();
+
+  return {
+    paymentId: payment._id,
+    paymentReference,
+    cashAppTag: this.CASHAPP_TAG,
+    amount,
+    planName,
+    instructions: `Send $${amount} to ${this.CASHAPP_TAG} with payment reference: ${paymentReference}`,
+  };
+}
 
   /**
    * Verify payment with transaction ID

@@ -4,6 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Savings_1 = __importDefault(require("../models/Savings"));
+const emailService_1 = __importDefault(require("./emailService"));
+const User_1 = __importDefault(require("../models/User"));
 class SavingsService {
     /**
      * Create savings account for new user
@@ -18,12 +20,29 @@ class SavingsService {
             const savings = new Savings_1.default({
                 userId,
                 balance: 0,
-                apy: 2.5, // 2.5% APY
+                apy: 15, // 15% APY
                 totalDeposited: 0,
                 totalWithdrawn: 0,
                 totalInterestEarned: 0,
             });
             await savings.save();
+            // Send savings account welcome email
+            try {
+                const user = await User_1.default.findById(userId);
+                if (user && user.email) {
+                    const emailHtml = emailService_1.default.generateSavingsWelcomeEmailHtml(user.firstName || 'Valued User', savings.apy);
+                    await emailService_1.default.sendEmail({
+                        to: user.email,
+                        subject: `Welcome to Crown Ledger Savings - ${savings.apy}% APY`,
+                        html: emailHtml,
+                    });
+                    console.log(`[SAVINGS] Welcome email sent to ${user.email}`);
+                }
+            }
+            catch (emailError) {
+                console.error('[SAVINGS] Error sending welcome email:', emailError);
+                // Don't throw - email failure shouldn't block savings account creation
+            }
             console.log(`[SAVINGS] Created savings account for user ${userId}`);
             return savings;
         }
@@ -144,7 +163,7 @@ class SavingsService {
                 savings.lastInterestCalculated = new Date();
                 savings.lastInterestAmount = dailyInterest;
                 await savings.save();
-                console.log(`[SAVINGS] Applied daily interest of $${dailyInterest.toFixed(2)} for user ${userId}`);
+                console.log(`[SAVINGS] User ${userId} - Balance: $${balanceBefore.toFixed(2)}, Daily Interest Rate: ${((savings.apy / 365 / 100) * 100).toFixed(6)}%, Interest Earned: $${dailyInterest.toFixed(8)}`);
             }
             return dailyInterest;
         }
@@ -184,8 +203,8 @@ class SavingsService {
                 totalInterestEarned: savings.totalInterestEarned,
                 apy: savings.apy,
                 maxInsured: savings.maxInsured,
-                monthlyInterest: monthlyInterest.toFixed(2),
-                annualInterest: annualInterest.toFixed(2),
+                monthlyInterest: parseFloat(monthlyInterest.toFixed(2)),
+                annualInterest: parseFloat(annualInterest.toFixed(2)),
                 insured: savings.balance <= savings.maxInsured,
                 lastInterestCalculated: savings.lastInterestCalculated,
                 lastInterestAmount: savings.lastInterestAmount,
@@ -251,11 +270,64 @@ class SavingsService {
                 const interest = await this.calculateDailyInterest(account.userId);
                 totalInterestApplied += interest;
             }
-            console.log(`[SAVINGS] Applied total daily interest: $${totalInterestApplied.toFixed(2)}`);
+            console.log(`[SAVINGS] Applied total daily interest to ${allSavingsAccounts.length} accounts: $${totalInterestApplied.toFixed(8)}`);
             return totalInterestApplied;
         }
         catch (error) {
             console.error('[SAVINGS] Error calculating all user interest:', error);
+            throw error;
+        }
+    }
+    /**
+     * Mark savings deposit as completed after payment verification
+     * This is called after Bitcoin payment is verified
+     */
+    async completeSavingsDeposit(userId, amount, paymentId) {
+        try {
+            if (amount <= 0) {
+                throw new Error('Deposit amount must be greater than 0');
+            }
+            let savings = await this.getSavingsAccount(userId);
+            if (!savings) {
+                savings = await this.createSavingsAccount(userId);
+            }
+            const balanceBefore = savings.balance;
+            const balanceAfter = balanceBefore + amount;
+            // Add deposit transaction with payment reference
+            savings.transactions.push({
+                type: 'deposit',
+                amount,
+                balanceBefore,
+                balanceAfter,
+                description: `Savings deposit of $${amount} via Bitcoin payment`,
+                paymentId,
+                timestamp: new Date(),
+            });
+            savings.balance = balanceAfter;
+            savings.totalDeposited = (savings.totalDeposited || 0) + amount;
+            await savings.save();
+            // Send deposit confirmation email
+            try {
+                const user = await User_1.default.findById(userId);
+                if (user && user.email) {
+                    const monthlyInterest = (balanceAfter * (savings.apy / 12)) / 100;
+                    const emailHtml = emailService_1.default.generateSavingsDepositConfirmationEmailHtml(user.firstName || 'Valued User', amount, balanceAfter, monthlyInterest);
+                    await emailService_1.default.sendEmail({
+                        to: user.email,
+                        subject: 'Savings Deposit Confirmed - Crown Ledger',
+                        html: emailHtml,
+                    });
+                    console.log(`[SAVINGS] Deposit confirmation email sent to ${user.email}`);
+                }
+            }
+            catch (emailError) {
+                console.error('[SAVINGS] Error sending deposit confirmation email:', emailError);
+            }
+            console.log(`[SAVINGS] Completed savings deposit of $${amount} for user ${userId}. New balance: $${balanceAfter}`);
+            return savings;
+        }
+        catch (error) {
+            console.error('[SAVINGS] Error completing savings deposit:', error);
             throw error;
         }
     }

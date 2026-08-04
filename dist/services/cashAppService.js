@@ -22,16 +22,20 @@ class CashAppService {
      */
     async createPaymentRequest(userId, investmentId, amount, planName) {
         const paymentReference = this.generatePaymentReference();
-        const payment = new Payment_1.default({
+        const paymentData = {
             userId,
-            investmentId: new mongoose_1.default.Types.ObjectId(investmentId),
             amount,
             currency: 'USD',
             paymentReference,
             cashAppTag: this.CASHAPP_TAG,
             status: 'pending',
             paymentMethod: 'cashapp',
-        });
+        };
+        // Only add investmentId if it exists
+        if (investmentId) {
+            paymentData.investmentId = new mongoose_1.default.Types.ObjectId(investmentId);
+        }
+        const payment = new Payment_1.default(paymentData);
         await payment.save();
         return {
             paymentId: payment._id,

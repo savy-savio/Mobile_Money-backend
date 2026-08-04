@@ -87,7 +87,7 @@ const investmentPlanSchema = new mongoose_1.Schema({
         type: String,
         required: true,
         enum: ['active', 'inactive'],
-        default: 'active',
+        default: 'inactive',
     },
 }, { timestamps: true });
 exports.default = mongoose_1.default.models.InvestmentPlan ||

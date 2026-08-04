@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import investmentService from '../services/investmentService';
 import dashboardService from '../services/dashboardService';
-import savingsService from '../services/savingsService';
+import savingsPlansService from '../services/savingsPlansService';
 import UserInvestment from '../models/UserInvestment';
 
 export class DashboardController {
@@ -321,7 +321,7 @@ export class DashboardController {
         return;
       }
 
-      const savingsDetails = await savingsService.getSavingsDetails(userId);
+      const savingsDetails = await savingsPlansService.getSavingsSummary(userId);
 
       res.status(200).json({
         success: true,
@@ -366,6 +366,47 @@ export class DashboardController {
     }
   }
 
+  async getMonthlyPerformance(req: Request, res: Response) {
+    try {
+      const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+
+      const performanceTrend = await dashboardService.getMonthlyPerformanceTrend(userId);
+
+      res.status(200).json({
+        success: true,
+        message: 'Monthly performance retrieved successfully',
+        data: performanceTrend,
+      });
+    } catch (error) {
+      console.error('[DASHBOARD] Error getting monthly performance:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error retrieving monthly performance',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  async getBalanceAndPerformance(req: Request, res: Response) {
+    try {
+      const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+
+      const balanceAndPerformance = await dashboardService.getBalanceAndPerformance(userId);
+
+      res.status(200).json({
+        success: true,
+        message: 'Balance and performance retrieved successfully',
+        data: balanceAndPerformance,
+      });
+    } catch (error) {
+      console.error('[DASHBOARD] Error getting balance and performance:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error retrieving balance and performance',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
   /**
    * Helper: Get month name
    */
@@ -387,5 +428,7 @@ export class DashboardController {
     return months[month - 1];
   }
 }
+
+
 
 export default new DashboardController();

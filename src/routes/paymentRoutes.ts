@@ -28,6 +28,13 @@ router.post('/verify', (req, res) => paymentController.verifyPayment(req, res));
 router.post('/verify-bitcoin', (req, res) => paymentController.verifyBitcoinPayment(req, res));
 
 /**
+ * POST /api/payments/verify-bitcoin-reference
+ * Verify Bitcoin payment using reference number and transaction hash
+ * NEW: User sends BTC without memo, then confirms with reference + tx hash
+ */
+router.post('/verify-bitcoin-reference', (req, res) => paymentController.verifyBitcoinPaymentByReference(req, res));
+
+/**
  * GET /api/payments/bitcoin/:paymentId
  * Get Bitcoin payment details
  */
@@ -59,6 +66,24 @@ router.get('/user/:userId/history', (req, res) =>
  */
 router.post('/:paymentId/resend-instructions', (req, res) =>
   paymentController.resendPaymentInstructions(req, res)
+);
+
+/**
+ * POST /api/payments/complete-bitcoin-payment
+ * Complete Bitcoin payment and create investment
+ * Call this after verifying the payment with /verify-bitcoin-reference
+ */
+router.post('/complete-bitcoin-payment', (req, res) =>
+  paymentController.completeBitcoinPayment(req, res)
+);
+
+/**
+ * POST /api/payments/complete-bitcoin-savings
+ * Complete Bitcoin payment and deposit to savings
+ * Call this after verifying the payment with /verify-bitcoin-reference
+ */
+router.post('/complete-bitcoin-savings', (req, res) =>
+  paymentController.completeBitcoinPaymentSavings(req, res)
 );
 
 export default router;

@@ -34,99 +34,64 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const paymentSchema = new mongoose_1.Schema({
+const SavingsTransactionSchema = new mongoose_1.Schema({
+    savingsPlanId: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'SavingsPlan',
+        required: true,
+        index: true,
+    },
     userId: {
         type: String,
         required: true,
         index: true,
     },
-    planId: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: 'InvestmentPlan',
-        required: false,
-        default: null,
-    },
-    investmentId: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: 'UserInvestment',
-        default: null,
-        required: false,
-    },
-    savingsPlanId: {
+    type: {
         type: String,
-        required: false,
-        default: null,
-        index: true,
-    },
-    savingsPlanName: {
-        type: String,
-        required: false,
-        default: null,
+        enum: ['deposit', 'withdrawal', 'interest'],
+        required: true,
     },
     amount: {
         type: Number,
         required: true,
+        min: 0,
     },
-    currency: {
+    description: {
         type: String,
         required: true,
-        default: 'USD',
+    },
+    paymentId: {
+        type: String,
+        sparse: true,
     },
     paymentReference: {
         type: String,
-        required: true,
-        unique: true,
-        index: true,
-    },
-    paymentMethod: {
-        type: String,
-        required: true,
-        enum: ['cashapp', 'bitcoin'],
-        default: 'bitcoin',
-    },
-    // Cash App fields
-    cashAppTransactionId: {
-        type: String,
-    },
-    cashAppTag: {
-        type: String,
-        default: '$davechar1997',
-    },
-    // Bitcoin fields
-    bitcoinAddress: {
-        type: String,
-    },
-    bitcoinAmountUSD: {
-        type: Number,
-    },
-    bitcoinAmountBTC: {
-        type: Number,
+        sparse: true,
     },
     bitcoinTransactionHash: {
         type: String,
-        unique: true,
-        sparse: true, // Allows multiple null values
-        index: true,
-    },
-    bitcoinConfirmations: {
-        type: Number,
-        default: 0,
+        sparse: true,
     },
     status: {
         type: String,
-        required: true,
-        enum: ['pending', 'completed', 'failed', 'cancelled'],
+        enum: ['completed', 'pending', 'failed'],
         default: 'pending',
     },
-    verifiedAt: {
+    balanceBefore: {
+        type: Number,
+        required: true,
+    },
+    balanceAfter: {
+        type: Number,
+        required: true,
+    },
+    timestamp: {
         type: Date,
-    },
-    verificationNotes: {
-        type: String,
-    },
-    errorMessage: {
-        type: String,
+        default: () => new Date(),
     },
 }, { timestamps: true });
-exports.default = mongoose_1.default.models.Payment ||
-    mongoose_1.default.model('Payment', paymentSchema);
+// Index for querying transactions
+SavingsTransactionSchema.index({ savingsPlanId: 1, timestamp: -1 });
+SavingsTransactionSchema.index({ userId: 1, timestamp: -1 });
+const SavingsTransaction = mongoose_1.default.model('SavingsTransaction', SavingsTransactionSchema);
+exports.default = SavingsTransaction;

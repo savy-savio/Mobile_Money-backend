@@ -5,37 +5,43 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.optionalAuth = exports.authenticateToken = void 0;
 const tokenService_1 = __importDefault(require("../services/tokenService"));
-const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-    if (!token) {
-        res.status(401).json({ success: false, message: 'Access token is required' });
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const authenticateToken = async (req, res, next) => {
+    console.log("========== AUTH REQUEST ==========");
+    console.log("Authorization Header:", req.headers.authorization);
+    console.log("All Headers:", req.headers);
+    console.log("=================================");
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        res.status(401).json({
+            success: false,
+            message: "Access token is required",
+        });
         return;
     }
+    const token = authHeader.replace("Bearer ", "").trim();
+    console.log("Received Token:", token);
+    const decodedWithoutVerify = jsonwebtoken_1.default.decode(token);
+    console.log("Decoded Before Verify:", decodedWithoutVerify);
     try {
         const decoded = tokenService_1.default.verifyAccessToken(token);
-        if (!decoded) {
-            res.status(403).json({ success: false, message: 'Invalid or expired access token' });
+        if (decoded) {
+            req.userId = decoded.userId;
+            req.email = decoded.email;
+            next();
             return;
         }
-        req.userId = decoded.userId;
-        req.email = decoded.email;
-        next();
+        res.status(403).json({
+            success: false,
+            message: "Invalid or expired access token",
+        });
     }
     catch (error) {
-        // Check if token is expired specifically
-        if (error.name === 'TokenExpiredError') {
-            res.status(401).json({
-                success: false,
-                message: 'Access token expired',
-                code: 'TOKEN_EXPIRED',
-                expiredAt: error.expiredAt
-            });
-            return;
-        }
-        // For any other JWT error
-        res.status(403).json({ success: false, message: 'Invalid access token' });
-        return;
+        console.error(error);
+        res.status(403).json({
+            success: false,
+            message: "Invalid access token",
+        });
     }
 };
 exports.authenticateToken = authenticateToken;

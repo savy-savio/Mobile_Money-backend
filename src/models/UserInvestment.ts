@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import InvestmentTransactionSchema, { IInvestmentTransaction } from './InvestmentTransaction';
 
 export interface IMonthlyPerformance {
   month: number; // 1-12
@@ -16,6 +17,7 @@ export interface IUserInvestment extends Document {
   totalGain: number;
   gainPercentage: number;
   monthlyPerformance: IMonthlyPerformance[];
+  transactions: IInvestmentTransaction[];
   investmentDate: Date;
   maturityDate: Date;
   status: 'active' | 'completed' | 'cancelled';
@@ -80,6 +82,7 @@ const userInvestmentSchema = new Schema<IUserInvestment>(
       default: 0,
     },
     monthlyPerformance: [monthlyPerformanceSchema],
+    transactions: [InvestmentTransactionSchema],
     investmentDate: {
       type: Date,
       required: true,

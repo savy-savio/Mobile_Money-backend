@@ -97,3 +97,65 @@ export const validateRefreshToken = (req: Request, res: Response, next: NextFunc
 
   next();
 };
+
+export const validateChangePassword = (req: Request, res: Response, next: NextFunction): void => {
+  const { oldPassword, newPassword, confirmPassword } = req.body;
+
+  const errors: string[] = [];
+
+  if (!oldPassword) errors.push('Old password is required');
+  if (!newPassword) errors.push('New password is required');
+  if (!confirmPassword) errors.push('Confirm password is required');
+
+  if (newPassword && confirmPassword && newPassword !== confirmPassword) {
+    errors.push('New passwords do not match');
+  }
+
+  if (newPassword && newPassword.length < 8) {
+    errors.push('New password must be at least 8 characters');
+  }
+
+  if (errors.length > 0) {
+    res.status(400).json({ success: false, message: 'Validation errors', errors });
+    return;
+  }
+
+  next();
+};
+
+export const validateContactSupport = (req: Request, res: Response, next: NextFunction): void => {
+  console.log('[v0] validateContactSupport - req.body:', req.body);
+  console.log('[v0] validateContactSupport - Content-Type:', req.headers['content-type']);
+  
+  const { topic, subject, message } = req.body || {};
+
+  const errors: string[] = [];
+
+  if (!topic) errors.push('Topic is required');
+  if (!subject) errors.push('Subject is required');
+  if (!message) errors.push('Message is required');
+
+  const validTopics = ['Account', 'Billing & Payments', 'Transactions', 'Technical issue', 'Other'];
+  if (topic && !validTopics.includes(topic)) {
+    errors.push('Invalid topic. Must be one of: Account, Billing & Payments, Transactions, Technical issue, Other');
+  }
+
+  if (subject && subject.length > 150) {
+    errors.push('Subject must be less than 150 characters');
+  }
+
+  if (message && message.length > 5000) {
+    errors.push('Message must be less than 5000 characters');
+  }
+
+  if (message && message.length < 10) {
+    errors.push('Message must be at least 10 characters');
+  }
+
+  if (errors.length > 0) {
+    res.status(400).json({ success: false, message: 'Validation errors', errors });
+    return;
+  }
+
+  next();
+};

@@ -32,8 +32,12 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
+const InvestmentTransaction_1 = __importDefault(require("./InvestmentTransaction"));
 const monthlyPerformanceSchema = new mongoose_1.Schema({
     month: {
         type: Number,
@@ -88,6 +92,7 @@ const userInvestmentSchema = new mongoose_1.Schema({
         default: 0,
     },
     monthlyPerformance: [monthlyPerformanceSchema],
+    transactions: [InvestmentTransaction_1.default],
     investmentDate: {
         type: Date,
         required: true,

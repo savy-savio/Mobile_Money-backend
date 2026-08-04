@@ -66,7 +66,7 @@ class EmailService {
                 <p class="warning">⚠️ This link will expire in 24 hours. If you didn't create this account, please ignore this email.</p>
               </div>
               <div class="footer">
-                <p>&copy; 2024 Crown Ledger. All rights reserved.</p>
+                <p>&copy; 2026 Crown Ledger. All rights reserved.</p>
                 <p>This is an automated email. Please do not reply.</p>
               </div>
             </div>
@@ -115,7 +115,7 @@ class EmailService {
                 <p class="warning">⚠️ This link will expire in 1 hour. If you didn't request a password reset, please ignore this email and your account will remain secure.</p>
               </div>
               <div class="footer">
-                <p>&copy; 2024 Crown Ledger. All rights reserved.</p>
+                <p>&copy; 2026 Crown Ledger. All rights reserved.</p>
                 <p>This is an automated email. Please do not reply.</p>
               </div>
             </div>
@@ -169,7 +169,7 @@ class EmailService {
                 <p>If you have any questions or need assistance, our support team is here to help you.</p>
               </div>
               <div class="footer">
-                <p>&copy; 2024 Crown Ledger. All rights reserved.</p>
+                <p>&copy; 2026 Crown Ledger. All rights reserved.</p>
                 <p>This is an automated email. Please do not reply.</p>
               </div>
             </div>
@@ -220,7 +220,7 @@ class EmailService {
                 <p>Your account security is important to us. If you notice any suspicious activity, please contact our support team right away.</p>
               </div>
               <div class="footer">
-                <p>&copy; 2024 Crown Ledger. All rights reserved.</p>
+                <p>&copy; 2026 Crown Ledger. All rights reserved.</p>
                 <p>This is an automated email. Please do not reply.</p>
               </div>
             </div>
@@ -272,7 +272,464 @@ class EmailService {
                 <p>You can track your investment growth and performance in your Crown Ledger dashboard. Our team is working to grow your investments and deliver the best returns.</p>
               </div>
               <div class="footer">
-                <p>&copy; 2024 Crown Ledger. All rights reserved.</p>
+                <p>&copy; 2026 Crown Ledger. All rights reserved.</p>
+                <p>This is an automated email. Please do not reply.</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    }
+    generateSavingsWelcomeEmailHtml(fullName, apy) {
+        return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: 'DM Sans', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
+            .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+            .header { text-align: center; margin-bottom: 30px; }
+            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
+            .logo-img { width: 44px; height: 44px; }
+            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
+            .logo-text .brand { color: #FA510F; }
+            .content { margin-bottom: 30px; }
+            .info-box { background-color: #EFF6FF; border-left: 4px solid #3B82F6; padding: 15px; margin: 20px 0; border-radius: 8px; }
+            .info-box p { color: #1E40AF; margin: 8px 0; }
+            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="email-body">
+              <div class="header">
+                <div class="logo-container">
+                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
+                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
+                </div>
+              </div>
+              <div class="content">
+                <h2>Savings Account Created</h2>
+                <p>Hi ${fullName},</p>
+                <p>Your Crown Ledger savings account has been successfully created! Start earning interest on your savings today.</p>
+                <div class="info-box">
+                  <p><strong>Savings Features:</strong></p>
+                  <p>Annual Percentage Yield (APY): <strong>${apy}%</strong></p>
+                  <p>FDIC Insurance Protection: <strong>Up to $250,000</strong></p>
+                  <p>Daily Interest Calculation: <strong>Yes</strong></p>
+                  <p>Zero Fees: <strong>Always</strong></p>
+                </div>
+                <p>Your interest will be calculated daily and credited to your account. The more you save, the more you earn!</p>
+              </div>
+              <div class="footer">
+                <p>&copy; 2026 Crown Ledger. All rights reserved.</p>
+                <p>This is an automated email. Please do not reply.</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    }
+    generateSavingsDepositConfirmationEmailHtml(fullName, depositAmount, newBalance, monthlyInterest, savingsGoal, planBalanceAfter, targetAmount, progressPercentage) {
+        return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: 'DM Sans', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
+            .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+            .header { text-align: center; margin-bottom: 30px; }
+            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
+            .logo-img { width: 44px; height: 44px; }
+            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
+            .logo-text .brand { color: #FA510F; }
+            .content { margin-bottom: 30px; }
+            .success-box { background-color: #F0FDF4; border-left: 4px solid #10B981; padding: 15px; margin: 20px 0; border-radius: 8px; }
+            .success-box p { color: #065F46; margin: 8px 0; }
+            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="email-body">
+              <div class="header">
+                <div class="logo-container">
+                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
+                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
+                </div>
+              </div>
+              <div class="content">
+                <h2>Savings Deposit Confirmed</h2>
+                <p>Hi ${fullName},</p>
+                <p>Your savings deposit has been successfully processed!</p>
+                <div class="success-box">
+                  <p><strong>Deposit Details:</strong></p>
+                  <p>Deposit Amount: <strong>$${depositAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
+                  <p>New Balance: <strong>$${newBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
+                  <p>Projected Monthly Interest: <strong>$${monthlyInterest.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
+                  <p>Date: <strong>${new Date().toLocaleDateString()}</strong></p>
+                  ${savingsGoal ? `
+                    <p style="margin-top: 15px; border-top: 1px solid #ddd; padding-top: 15px;">
+                      <strong>Savings Plan: "${savingsGoal}"</strong>
+                    </p>
+                    <p>Plan Balance: <strong>$${planBalanceAfter?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
+                    <p>Target Amount: <strong>$${targetAmount?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
+                    <p>Progress: <strong>${progressPercentage?.toFixed(1)}%</strong></p>
+                  ` : ''}
+                </div>
+                <p>Your savings are growing with daily interest calculations. Visit your Crown Ledger dashboard to track your earnings!</p>
+              </div>
+              <div class="footer">
+                <p>&copy; 2026 Crown Ledger. All rights reserved.</p>
+                <p>This is an automated email. Please do not reply.</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    }
+    generateSavingsPlanCreatedEmailHtml(fullName, planName, targetAmount, duration, frequency) {
+        return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: 'DM Sans', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
+            .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+            .header { text-align: center; margin-bottom: 30px; }
+            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
+            .logo-img { width: 44px; height: 44px; }
+            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
+            .logo-text .brand { color: #FA510F; }
+            .content { margin-bottom: 30px; }
+            .success-box { background-color: #F0FDF4; border-left: 4px solid #10B981; padding: 15px; margin: 20px 0; border-radius: 8px; }
+            .success-box p { color: #065F46; margin: 8px 0; }
+            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="email-body">
+              <div class="header">
+                <div class="logo-container">
+                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
+                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
+                </div>
+              </div>
+              <div class="content">
+                <h2>Your Savings Plan is Ready!</h2>
+                <p>Hi ${fullName},</p>
+                <p>Great news! Your savings plan has been successfully created. You're one step closer to achieving your financial goals!</p>
+                <div class="success-box">
+                  <p><strong>Plan Details:</strong></p>
+                  <p>Plan Name: <strong>${planName}</strong></p>
+                  <p>Target Amount: <strong>$${targetAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
+                  <p>Duration: <strong>${duration} months</strong></p>
+                  <p>Savings Frequency: <strong>${frequency.charAt(0).toUpperCase() + frequency.slice(1)}</strong></p>
+                  <p>Date Created: <strong>${new Date().toLocaleDateString()}</strong></p>
+                </div>
+                <p>Start making regular deposits to reach your target amount. Each deposit brings you closer to your goal, and you'll earn daily interest on your savings!</p>
+                <p>Log in to your Crown Ledger dashboard to make your first deposit and track your progress.</p>
+              </div>
+              <div class="footer">
+                <p>&copy; 2026 Crown Ledger. All rights reserved.</p>
+                <p>This is an automated email. Please do not reply.</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    }
+    generateDepositReminderEmailHtml(fullName, planName, suggestedAmount, nextDueDate) {
+        return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: 'DM Sans', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
+            .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+            .header { text-align: center; margin-bottom: 30px; }
+            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
+            .logo-img { width: 44px; height: 44px; }
+            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
+            .logo-text .brand { color: #FA510F; }
+            .content { margin-bottom: 30px; }
+            .reminder-box { background-color: #FEF3C7; border-left: 4px solid #F59E0B; padding: 15px; margin: 20px 0; border-radius: 8px; }
+            .reminder-box p { color: #92400E; margin: 8px 0; }
+            .button { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #FA510F 0%, #D94309 100%); color: #ffffff; text-decoration: none; border-radius: 10px; margin: 20px 0; font-weight: 600; box-shadow: 0 4px 12px rgba(250,81,15,0.3); }
+            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="email-body">
+              <div class="header">
+                <div class="logo-container">
+                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
+                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
+                </div>
+              </div>
+              <div class="content">
+                <h2>Time to Save!</h2>
+                <p>Hi ${fullName},</p>
+                <p>Your scheduled deposit is due for your savings plan. Stay on track with your savings goal!</p>
+                <div class="reminder-box">
+                  <p><strong>Deposit Reminder:</strong></p>
+                  <p>Plan: <strong>${planName}</strong></p>
+                  <p>Suggested Deposit Amount: <strong>$${suggestedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
+                  <p>Due Date: <strong>${new Date(nextDueDate).toLocaleDateString()}</strong></p>
+                </div>
+                <p>Making regular deposits helps you stay committed to your savings goals and maximizes your earned interest. Log in now to make your deposit!</p>
+              </div>
+              <div class="footer">
+                <p>&copy; 2026 Crown Ledger. All rights reserved.</p>
+                <p>This is an automated email. Please do not reply.</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    }
+    generatePasswordChangeEmailHtml(fullName) {
+        return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: 'DM Sans', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
+            .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+            .header { text-align: center; margin-bottom: 30px; }
+            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
+            .logo-img { width: 44px; height: 44px; }
+            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
+            .logo-text .brand { color: #FA510F; }
+            .content { margin-bottom: 30px; }
+            .security-box { background-color: #DBEAFE; border-left: 4px solid #0284C7; padding: 15px; margin: 20px 0; border-radius: 8px; }
+            .security-box p { color: #075985; margin: 8px 0; }
+            .success-icon { font-size: 48px; text-align: center; margin: 20px 0; }
+            .action-list { list-style: none; padding: 0; margin: 15px 0; }
+            .action-list li { padding: 8px 0; padding-left: 25px; position: relative; color: #374151; }
+            .action-list li:before { content: "✓"; position: absolute; left: 0; color: #10B981; font-weight: bold; font-size: 16px; }
+            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="email-body">
+              <div class="header">
+                <div class="logo-container">
+                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
+                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
+                </div>
+              </div>
+              <div class="content">
+                <h2>Password Changed Successfully</h2>
+                <div class="success-icon">✓</div>
+                <p>Hi ${fullName},</p>
+                <p>Your password has been successfully changed. Your account is now secured with your new password.</p>
+                <div class="security-box">
+                  <p><strong>Security Notice:</strong></p>
+                  <p>For your security, all your login sessions have been signed out. You will need to log in again on all your devices with your new password.</p>
+                </div>
+                <h3>What's Next?</h3>
+                <ul class="action-list">
+                  <li>Log in with your new password on all devices</li>
+                  <li>Your old password will no longer work</li>
+                  <li>Keep your password secure and don't share it with anyone</li>
+                </ul>
+                <p><strong>If you didn't make this change,</strong> please contact us immediately at support@bankapp.com or call our support team.</p>
+              </div>
+              <div class="footer">
+                <p>&copy; 2026 Crown Ledger. All rights reserved.</p>
+                <p>This is an automated email. Please do not reply.</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    }
+    generateSupportTicketConfirmationEmailHtml(fullName, subject, ticketId) {
+        return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: 'DM Sans', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
+            .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+            .header { text-align: center; margin-bottom: 30px; }
+            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
+            .logo-img { width: 44px; height: 44px; }
+            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
+            .logo-text .brand { color: #FA510F; }
+            .content { margin-bottom: 30px; }
+            .ticket-box { background-color: #F0FDF4; border-left: 4px solid #10B981; padding: 15px; margin: 20px 0; border-radius: 8px; }
+            .ticket-box p { color: #065F46; margin: 8px 0; }
+            .ticket-id { font-family: monospace; background: #f0f0f0; padding: 8px; border-radius: 4px; display: inline-block; }
+            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="email-body">
+              <div class="header">
+                <div class="logo-container">
+                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
+                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
+                </div>
+              </div>
+              <div class="content">
+                <h2>Support Ticket Received</h2>
+                <p>Hi ${fullName},</p>
+                <p>Thank you for contacting Crown Ledger support. We have received your support request and our team will review it shortly.</p>
+                <div class="ticket-box">
+                  <p><strong>Your Ticket Details:</strong></p>
+                  <p>Ticket ID: <span class="ticket-id">#${ticketId}</span></p>
+                  <p>Subject: <strong>${subject}</strong></p>
+                  <p>Status: <strong>Open</strong></p>
+                  <p>Submitted: <strong>${new Date().toLocaleString()}</strong></p>
+                </div>
+                <p>Our support team typically responds within 24-48 hours. We appreciate your patience and will get back to you as soon as possible.</p>
+                <p>You can track your ticket status and view updates in your Crown Ledger account dashboard.</p>
+              </div>
+              <div class="footer">
+                <p>&copy; 2026 Crown Ledger. All rights reserved.</p>
+                <p>This is an automated email. Please do not reply.</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    }
+    generateSupportTicketAdminEmailHtml(ticket) {
+        return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: 'DM Sans', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 700px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
+            .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+            .header { border-bottom: 2px solid #FA510F; padding-bottom: 15px; margin-bottom: 20px; }
+            .ticket-info { background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin: 15px 0; }
+            .info-row { display: flex; justify-content: space-between; padding: 8px 0; }
+            .priority-high { color: #DC2626; font-weight: bold; }
+            .priority-medium { color: #EA580C; font-weight: bold; }
+            .priority-low { color: #16A34A; font-weight: bold; }
+            .message-box { background-color: #f0f0f0; padding: 15px; border-radius: 8px; margin: 20px 0; }
+            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="email-body">
+              <div class="header">
+                <h2>New Support Ticket Received</h2>
+              </div>
+              <div class="ticket-info">
+                <div class="info-row">
+                  <span><strong>Ticket ID:</strong></span>
+                  <span>#${ticket._id}</span>
+                </div>
+                <div class="info-row">
+                  <span><strong>User:</strong></span>
+                  <span>${ticket.userName} (${ticket.userEmail})</span>
+                </div>
+                <div class="info-row">
+                  <span><strong>Topic:</strong></span>
+                  <span>${ticket.topic}</span>
+                </div>
+                <div class="info-row">
+                  <span><strong>Priority:</strong></span>
+                  <span class="priority-${ticket.priority}">${ticket.priority.toUpperCase()}</span>
+                </div>
+                <div class="info-row">
+                  <span><strong>Status:</strong></span>
+                  <span>${ticket.status}</span>
+                </div>
+              </div>
+              <h3>${ticket.subject}</h3>
+              <div class="message-box">
+                <p>${ticket.message.replace(/\n/g, '<br>')}</p>
+              </div>
+              <p><strong>Action Required:</strong> Please review and respond to this ticket as soon as possible.</p>
+              <div class="footer">
+                <p>Crown Ledger Support Management System</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    }
+    generateSupportTicketStatusUpdateEmailHtml(fullName, subject, ticketId, newStatus) {
+        const statusColors = {
+            open: '#3B82F6',
+            'in-progress': '#F59E0B',
+            resolved: '#10B981',
+            closed: '#6B7280',
+        };
+        return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: 'DM Sans', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
+            .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+            .header { text-align: center; margin-bottom: 30px; }
+            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
+            .logo-img { width: 44px; height: 44px; }
+            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
+            .logo-text .brand { color: #FA510F; }
+            .content { margin-bottom: 30px; }
+            .status-badge { display: inline-block; padding: 10px 20px; border-radius: 20px; color: white; font-weight: bold; margin: 10px 0; }
+            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="email-body">
+              <div class="header">
+                <div class="logo-container">
+                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
+                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
+                </div>
+              </div>
+              <div class="content">
+                <h2>Support Ticket Update</h2>
+                <p>Hi ${fullName},</p>
+                <p>Your support ticket has been updated. Here's what changed:</p>
+                <p><strong>Ticket:</strong> ${subject}</p>
+                <p><strong>Ticket ID:</strong> #${ticketId}</p>
+                <p><strong>New Status:</strong></p>
+                <div class="status-badge" style="background-color: ${statusColors[newStatus] || '#6B7280'};">
+                  ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}
+                </div>
+                <p>Check your Crown Ledger account to view more details about your support request.</p>
+              </div>
+              <div class="footer">
+                <p>&copy; 2026 Crown Ledger. All rights reserved.</p>
                 <p>This is an automated email. Please do not reply.</p>
               </div>
             </div>

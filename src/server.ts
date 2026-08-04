@@ -1,67 +1,3 @@
-// import dotenv from 'dotenv';
-// dotenv.config(); 
-// import express, { Express, Request, Response } from 'express';
-// import cors from 'cors';
-// // import dotenv from 'dotenv';
-// import { connectDB } from './config/database';
-// import authRoutes from './routes/authRoutes';
-// import settingsRoutes from './routes/settingsRoutes';
-// import dns from 'dns';
-// dns.setDefaultResultOrder('ipv4first');
-
-// // Load environment variables
-// dotenv.config();
-
-// const app: Express = express();
-// const PORT = process.env.PORT || 5000;
-
-// // Middleware
-// app.use(cors({
-//   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-//   credentials: true,
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-// }));
-
-// app.use(express.json({ limit: '50mb' }));
-// app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
-// // Health check
-// app.get('/health', (req: Request, res: Response) => {
-//   res.status(200).json({ success: true, message: 'Server is running' });
-// });
-
-// // Routes
-// app.use('/api/auth', authRoutes);
-// app.use('/api/settings', settingsRoutes);
-
-// // 404 handler
-// app.use((req: Request, res: Response) => {
-//   res.status(404).json({ success: false, message: 'Route not found' });
-// });
-
-// // Start server
-// const startServer = async () => {
-//   try {
-//     // Connect to MongoDB
-//     await connectDB();
-
-//     app.listen(PORT, () => {
-//       console.log(`[SERVER] Server is running on port ${PORT}`);
-//       console.log(`[SERVER] Frontend URL: ${process.env.FRONTEND_URL}`);
-//       console.log(`[SERVER] Environment: ${process.env.NODE_ENV}`);
-//     });
-//   } catch (error) {
-//     console.error('[SERVER] Failed to start server:', error);
-//     process.exit(1);
-//   }
-// };
-
-// startServer();
-
-// export default app;
-
-
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -74,10 +10,12 @@ import dashboardRoutes from './routes/dashboardRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import authRoutes from './routes/authRoutes';
 import settingsRoutes from './routes/settingsRoutes';
+import savingsPlansRoutes from './routes/savingsPlansRoutes';
 import investmentService from './services/investmentService';
 // import stripeWebhookController from './controllers/stripeWebhookController';
 import paymentRoutes from './routes/paymentRoutes';
 import savingsRoutes from './routes/savingsRoute';
+import contactSupportRoutes from './routes/contactSupportRoutes';
 import DailyGrowthJob from './jobs/dailyGrowthJobs';
 
 
@@ -115,11 +53,25 @@ app.use(
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-refresh-token", "x-new-access-token"],
+    exposedHeaders: ["x-new-access-token", "x-refresh-token"],
   })
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Body parsing middleware with increased size limit
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Debug middleware to log requests
+app.use((req: Request, res: Response, next: NextFunction) => {
+  console.log('[v0] Incoming request:', {
+    method: req.method,
+    path: req.path,
+    contentType: req.headers['content-type'],
+    bodyExists: !!req.body,
+    bodyKeys: req.body ? Object.keys(req.body) : [],
+  });
+  next();
+});
 
 // Connect to database
 connectDB();
@@ -168,6 +120,11 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/payments', paymentRoutes);
 
 app.use('/api/savings', savingsRoutes);
+
+app.use('/api/savings-plans', savingsPlansRoutes);
+
+// Contact Support routes
+app.use('/api/support', contactSupportRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

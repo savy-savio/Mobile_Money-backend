@@ -1,59 +1,8 @@
 "use strict";
-// import dotenv from 'dotenv';
-// dotenv.config(); 
-// import express, { Express, Request, Response } from 'express';
-// import cors from 'cors';
-// // import dotenv from 'dotenv';
-// import { connectDB } from './config/database';
-// import authRoutes from './routes/authRoutes';
-// import settingsRoutes from './routes/settingsRoutes';
-// import dns from 'dns';
-// dns.setDefaultResultOrder('ipv4first');
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-// // Load environment variables
-// dotenv.config();
-// const app: Express = express();
-// const PORT = process.env.PORT || 5000;
-// // Middleware
-// app.use(cors({
-//   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-//   credentials: true,
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-// }));
-// app.use(express.json({ limit: '50mb' }));
-// app.use(express.urlencoded({ limit: '50mb', extended: true }));
-// // Health check
-// app.get('/health', (req: Request, res: Response) => {
-//   res.status(200).json({ success: true, message: 'Server is running' });
-// });
-// // Routes
-// app.use('/api/auth', authRoutes);
-// app.use('/api/settings', settingsRoutes);
-// // 404 handler
-// app.use((req: Request, res: Response) => {
-//   res.status(404).json({ success: false, message: 'Route not found' });
-// });
-// // Start server
-// const startServer = async () => {
-//   try {
-//     // Connect to MongoDB
-//     await connectDB();
-//     app.listen(PORT, () => {
-//       console.log(`[SERVER] Server is running on port ${PORT}`);
-//       console.log(`[SERVER] Frontend URL: ${process.env.FRONTEND_URL}`);
-//       console.log(`[SERVER] Environment: ${process.env.NODE_ENV}`);
-//     });
-//   } catch (error) {
-//     console.error('[SERVER] Failed to start server:', error);
-//     process.exit(1);
-//   }
-// };
-// startServer();
-// export default app;
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -66,10 +15,12 @@ const dashboardRoutes_1 = __importDefault(require("./routes/dashboardRoutes"));
 const notificationRoutes_1 = __importDefault(require("./routes/notificationRoutes"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const settingsRoutes_1 = __importDefault(require("./routes/settingsRoutes"));
+const savingsPlansRoutes_1 = __importDefault(require("./routes/savingsPlansRoutes"));
 const investmentService_1 = __importDefault(require("./services/investmentService"));
 // import stripeWebhookController from './controllers/stripeWebhookController';
 const paymentRoutes_1 = __importDefault(require("./routes/paymentRoutes"));
 const savingsRoute_1 = __importDefault(require("./routes/savingsRoute"));
+const contactSupportRoutes_1 = __importDefault(require("./routes/contactSupportRoutes"));
 const dailyGrowthJobs_1 = __importDefault(require("./jobs/dailyGrowthJobs"));
 const app = (0, express_1.default)();
 const PORT = process.env.BACKEND_PORT || 5000;
@@ -99,10 +50,23 @@ app.use((0, cors_1.default)({
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-refresh-token", "x-new-access-token"],
+    exposedHeaders: ["x-new-access-token", "x-refresh-token"],
 }));
-app.use(express_1.default.json());
-app.use(express_1.default.urlencoded({ extended: true }));
+// Body parsing middleware with increased size limit
+app.use(express_1.default.json({ limit: '10mb' }));
+app.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
+// Debug middleware to log requests
+app.use((req, res, next) => {
+    console.log('[v0] Incoming request:', {
+        method: req.method,
+        path: req.path,
+        contentType: req.headers['content-type'],
+        bodyExists: !!req.body,
+        bodyKeys: req.body ? Object.keys(req.body) : [],
+    });
+    next();
+});
 // Connect to database
 (0, database_1.connectDB)();
 // Health check endpoint
@@ -142,6 +106,9 @@ app.use('/api/investments', investmentRoutes_1.default);
 app.use('/api/dashboard', dashboardRoutes_1.default);
 app.use('/api/payments', paymentRoutes_1.default);
 app.use('/api/savings', savingsRoute_1.default);
+app.use('/api/savings-plans', savingsPlansRoutes_1.default);
+// Contact Support routes
+app.use('/api/support', contactSupportRoutes_1.default);
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({

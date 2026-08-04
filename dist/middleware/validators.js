@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateRefreshToken = exports.validateVerifyEmail = exports.validateResetPassword = exports.validateForgotPassword = exports.validateLogin = exports.validateSignup = void 0;
+exports.validateContactSupport = exports.validateChangePassword = exports.validateRefreshToken = exports.validateVerifyEmail = exports.validateResetPassword = exports.validateForgotPassword = exports.validateLogin = exports.validateSignup = void 0;
 const validateSignup = (req, res, next) => {
     const { firstName, lastName, username, email, phoneNumber, country, currency, accountType, pin, password, confirmPassword, agreedToTerms } = req.body;
     const errors = [];
@@ -97,3 +97,56 @@ const validateRefreshToken = (req, res, next) => {
     next();
 };
 exports.validateRefreshToken = validateRefreshToken;
+const validateChangePassword = (req, res, next) => {
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+    const errors = [];
+    if (!oldPassword)
+        errors.push('Old password is required');
+    if (!newPassword)
+        errors.push('New password is required');
+    if (!confirmPassword)
+        errors.push('Confirm password is required');
+    if (newPassword && confirmPassword && newPassword !== confirmPassword) {
+        errors.push('New passwords do not match');
+    }
+    if (newPassword && newPassword.length < 8) {
+        errors.push('New password must be at least 8 characters');
+    }
+    if (errors.length > 0) {
+        res.status(400).json({ success: false, message: 'Validation errors', errors });
+        return;
+    }
+    next();
+};
+exports.validateChangePassword = validateChangePassword;
+const validateContactSupport = (req, res, next) => {
+    console.log('[v0] validateContactSupport - req.body:', req.body);
+    console.log('[v0] validateContactSupport - Content-Type:', req.headers['content-type']);
+    const { topic, subject, message } = req.body || {};
+    const errors = [];
+    if (!topic)
+        errors.push('Topic is required');
+    if (!subject)
+        errors.push('Subject is required');
+    if (!message)
+        errors.push('Message is required');
+    const validTopics = ['Account', 'Billing & Payments', 'Transactions', 'Technical issue', 'Other'];
+    if (topic && !validTopics.includes(topic)) {
+        errors.push('Invalid topic. Must be one of: Account, Billing & Payments, Transactions, Technical issue, Other');
+    }
+    if (subject && subject.length > 150) {
+        errors.push('Subject must be less than 150 characters');
+    }
+    if (message && message.length > 5000) {
+        errors.push('Message must be less than 5000 characters');
+    }
+    if (message && message.length < 10) {
+        errors.push('Message must be at least 10 characters');
+    }
+    if (errors.length > 0) {
+        res.status(400).json({ success: false, message: 'Validation errors', errors });
+        return;
+    }
+    next();
+};
+exports.validateContactSupport = validateContactSupport;

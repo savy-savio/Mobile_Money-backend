@@ -59,16 +59,18 @@ class InvestmentController {
         }
     }
     /**
-     * Initialize investment payment with Cash App or Bitcoin
+     * Initialize investment or savings payment with Cash App or Bitcoin
+     * For investments: provide userId, planId, amount, paymentMethod
+     * For savings: provide userId, amount, paymentMethod (planId is optional)
      */
     async initializePayment(req, res) {
         try {
-            const { userId, planId, amount, paymentMethod = 'cashapp' } = req.body;
-            // Validate input
-            if (!userId || !planId || !amount) {
+            const { userId, planId, amount, paymentMethod = 'bitcoin' } = req.body;
+            // Validate required fields (planId is optional for savings)
+            if (!userId || !amount) {
                 res.status(400).json({
                     success: false,
-                    message: 'Missing required fields: userId, planId, amount',
+                    message: 'Missing required fields: userId, amount (planId is optional for savings)',
                 });
                 return;
             }
@@ -80,19 +82,125 @@ class InvestmentController {
                 });
                 return;
             }
-            // Verify plan exists and validate minimum investment
-            const plan = await investmentService_1.default.getPlanById(planId);
-            if (!plan) {
+            // Verify user exists
+            const user = await User_1.default.findById(userId);
+            if (!user) {
                 res.status(404).json({
                     success: false,
-                    message: 'Investment plan not found',
+                    message: 'User not found',
                 });
                 return;
             }
-            if (amount < plan.minInvestment) {
+            // If planId is provided, verify it's a valid investment plan
+            let plan = null;
+            let paymentType = 'savings';
+            if (planId) {
+                plan = await investmentService_1.default.getPlanById(planId);
+                if (!plan) {
+                    res.status(404).json({
+                        success: false,
+                        message: 'Investment plan not found',
+                    });
+                    return;
+                }
+                // Validate minimum investment
+                if (amount < plan.minInvestment) {
+                    res.status(400).json({
+                        success: false,
+                        message: `Minimum investment for ${plan.name} is $${plan.minInvestment}`,
+                    });
+                    return;
+                }
+                paymentType = 'investment';
+            }
+            else {
+                // For savings, validate minimum deposit
+                if (amount < 1) {
+                    res.status(400).json({
+                        success: false,
+                        message: 'Minimum savings deposit is $1',
+                    });
+                    return;
+                }
+            }
+            // Create payment request based on payment method
+            let paymentRequest;
+            const planName = plan ? plan.name : 'Savings Deposit';
+            if (paymentMethod === 'bitcoin') {
+                paymentRequest = await bitcoinService_1.default.createPaymentRequest(userId, planId, amount, planName);
+                res.status(200).json({
+                    success: true,
+                    data: {
+                        paymentId: paymentRequest.paymentId,
+                        paymentReference: paymentRequest.paymentReference,
+                        paymentMethod: 'bitcoin',
+                        paymentType: paymentRequest.type,
+                        bitcoinAddress: paymentRequest.bitcoinAddress,
+                        amountUSD: paymentRequest.amountUSD,
+                        amountBTC: paymentRequest.amountBTC,
+                        exchangeRate: paymentRequest.exchangeRate,
+                        planName: paymentRequest.planName,
+                        instructions: paymentRequest.instructions,
+                        message: paymentRequest.message,
+                    },
+                });
+            }
+            else {
+                // Cash App payment
+                const planName = plan ? plan.name : 'Savings Deposit';
+                paymentRequest = await cashAppService_1.default.createPaymentRequest(userId, planId, amount, planName);
+                res.status(200).json({
+                    success: true,
+                    data: {
+                        paymentId: paymentRequest.paymentId,
+                        paymentReference: paymentRequest.paymentReference,
+                        paymentMethod: 'cashapp',
+                        paymentType,
+                        cashAppTag: paymentRequest.cashAppTag,
+                        amount: paymentRequest.amount,
+                        planName: paymentRequest.planName,
+                        instructions: paymentRequest.instructions,
+                        message: `Send payment to ${paymentRequest.cashAppTag} and provide the payment reference: ${paymentRequest.paymentReference}`,
+                    },
+                });
+            }
+        }
+        catch (error) {
+            const err = error;
+            res.status(500).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+    /**
+     * Initialize savings payment with Cash App or Bitcoin
+     * For savings only - no investment plan needed
+     */
+    async initializeSavingsPayment(req, res) {
+        try {
+            const { userId, amount, paymentMethod = 'bitcoin' } = req.body;
+            // Validate required fields
+            if (!userId || !amount) {
                 res.status(400).json({
                     success: false,
-                    message: `Minimum investment for ${plan.name} is $${plan.minInvestment}`,
+                    message: 'Missing required fields: userId, amount',
+                });
+                return;
+            }
+            // Validate payment method
+            if (!['cashapp', 'bitcoin'].includes(paymentMethod)) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Invalid payment method. Must be either "cashapp" or "bitcoin"',
+                });
+                return;
+            }
+            // Validate minimum deposit
+            if (amount < 1) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Minimum savings deposit is $1',
                 });
                 return;
             }
@@ -108,35 +216,39 @@ class InvestmentController {
             // Create payment request based on payment method
             let paymentRequest;
             if (paymentMethod === 'bitcoin') {
-                paymentRequest = await bitcoinService_1.default.createPaymentRequest(userId, planId, amount, plan.name);
+                paymentRequest = await bitcoinService_1.default.createPaymentRequest(userId, undefined, // No planId for savings
+                amount, paymentMethod);
                 res.status(200).json({
                     success: true,
                     data: {
                         paymentId: paymentRequest.paymentId,
                         paymentReference: paymentRequest.paymentReference,
                         paymentMethod: 'bitcoin',
+                        paymentType: 'savings',
                         bitcoinAddress: paymentRequest.bitcoinAddress,
                         amountUSD: paymentRequest.amountUSD,
                         amountBTC: paymentRequest.amountBTC,
                         exchangeRate: paymentRequest.exchangeRate,
-                        planName: paymentRequest.planName,
+                        planName: 'Savings Deposit',
                         instructions: paymentRequest.instructions,
                         message: paymentRequest.message,
                     },
                 });
             }
             else {
-                // Default to Cash App
-                paymentRequest = await cashAppService_1.default.createPaymentRequest(userId, planId, amount, plan.name);
+                // Cash App payment
+                paymentRequest = await cashAppService_1.default.createPaymentRequest(userId, undefined, // No planId for savings
+                amount, 'Savings Deposit');
                 res.status(200).json({
                     success: true,
                     data: {
                         paymentId: paymentRequest.paymentId,
                         paymentReference: paymentRequest.paymentReference,
                         paymentMethod: 'cashapp',
+                        paymentType: 'savings',
                         cashAppTag: paymentRequest.cashAppTag,
                         amount: paymentRequest.amount,
-                        planName: paymentRequest.planName,
+                        planName: 'Savings Deposit',
                         instructions: paymentRequest.instructions,
                         message: `Send payment to ${paymentRequest.cashAppTag} and provide the payment reference: ${paymentRequest.paymentReference}`,
                     },
@@ -214,16 +326,27 @@ class InvestmentController {
                 });
                 return;
             }
-            // Create investment
-            const investment = await investmentService_1.default.createInvestment(userId, finalPlanId, payment.amount, paymentId.toString());
-            // Verify payment based on method
+            // Verify payment based on method first to get actual amount
+            let actualAmount = payment.amount;
             if (payment.paymentMethod === 'bitcoin') {
-                await bitcoinService_1.default.verifyPayment(paymentId, bitcoinTransactionHash, 1);
+                const verifiedPayment = await bitcoinService_1.default.verifyPayment(paymentId, bitcoinTransactionHash, 1);
+                // Extract actual amount from verified payment
+                if (verifiedPayment && verifiedPayment.amount) {
+                    actualAmount = verifiedPayment.amount;
+                }
             }
             else {
                 await cashAppService_1.default.verifyPayment(paymentId, cashAppTransactionId, 'Payment verified via transaction ID');
             }
+            // Create investment with actual amount received
+            const investment = await investmentService_1.default.createInvestment(userId, finalPlanId, payment.amount, paymentId.toString(), actualAmount // Pass the actual amount received
+            );
+            // Update investment status to active after payment verification
+            await investmentService_1.default.updateInvestmentStatus(investment._id.toString(), 'active');
+            // Activate the plan if this is the first investment in it
+            await investmentService_1.default.activatePlan(finalPlanId);
             // Update payment record
+            const updatedInvestment = await investmentService_1.default.getInvestmentById(investment._id.toString());
             await Payment_1.default.findByIdAndUpdate(paymentId, {
                 investmentId: investment._id,
             }, { new: true });
@@ -262,10 +385,11 @@ class InvestmentController {
                 success: true,
                 message: 'Investment created successfully after payment verification',
                 data: {
-                    investment,
+                    investment: updatedInvestment,
                     payment: {
                         paymentId: payment._id,
-                        amount: payment.amount,
+                        expectedAmount: payment.amount,
+                        actualAmount: actualAmount,
                         status: 'completed',
                     },
                 },
@@ -323,6 +447,68 @@ class InvestmentController {
             res.status(200).json({
                 success: true,
                 data: investment,
+            });
+        }
+        catch (error) {
+            const err = error;
+            res.status(500).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+    /**
+     * Get investment transaction history
+     */
+    async getInvestmentTransactions(req, res) {
+        try {
+            const investmentId = Array.isArray(req.params.investmentId) ? req.params.investmentId[0] : req.params.investmentId;
+            const limit = req.query.limit ? parseInt(req.query.limit) : 50;
+            if (!investmentId) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Investment ID is required',
+                });
+                return;
+            }
+            const transactions = await investmentService_1.default.getTransactionHistory(investmentId, limit);
+            res.status(200).json({
+                success: true,
+                data: {
+                    transactions,
+                    count: transactions.length,
+                },
+            });
+        }
+        catch (error) {
+            const err = error;
+            res.status(500).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+    /**
+     * Get all user investment transactions across all investments
+     */
+    async getUserInvestmentTransactions(req, res) {
+        try {
+            const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+            const limit = req.query.limit ? parseInt(req.query.limit) : 50;
+            if (!userId) {
+                res.status(400).json({
+                    success: false,
+                    message: 'User ID is required',
+                });
+                return;
+            }
+            const transactions = await investmentService_1.default.getUserTransactionHistory(userId, limit);
+            res.status(200).json({
+                success: true,
+                data: {
+                    transactions,
+                    count: transactions.length,
+                },
             });
         }
         catch (error) {
@@ -404,6 +590,33 @@ class InvestmentController {
             res.status(200).json({
                 success: true,
                 data: allocation,
+            });
+        }
+        catch (error) {
+            const err = error;
+            res.status(500).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+    /**
+     * Get 12-month portfolio growth trend
+     */
+    async getPortfolioGrowthTrend(req, res) {
+        try {
+            const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+            if (!userId) {
+                res.status(400).json({
+                    success: false,
+                    message: 'User ID is required',
+                });
+                return;
+            }
+            const growthTrend = await investmentService_1.default.getPortfolioGrowthTrend(userId);
+            res.status(200).json({
+                success: true,
+                data: growthTrend,
             });
         }
         catch (error) {

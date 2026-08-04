@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DashboardController = void 0;
 const investmentService_1 = __importDefault(require("../services/investmentService"));
 const dashboardService_1 = __importDefault(require("../services/dashboardService"));
-const savingsService_1 = __importDefault(require("../services/savingsService"));
+const savingsPlansService_1 = __importDefault(require("../services/savingsPlansService"));
 const UserInvestment_1 = __importDefault(require("../models/UserInvestment"));
 class DashboardController {
     /**
@@ -288,7 +288,7 @@ class DashboardController {
                 });
                 return;
             }
-            const savingsDetails = await savingsService_1.default.getSavingsDetails(userId);
+            const savingsDetails = await savingsPlansService_1.default.getSavingsSummary(userId);
             res.status(200).json({
                 success: true,
                 data: savingsDetails,
@@ -326,6 +326,44 @@ class DashboardController {
             res.status(500).json({
                 success: false,
                 message: err.message,
+            });
+        }
+    }
+    async getMonthlyPerformance(req, res) {
+        try {
+            const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+            const performanceTrend = await dashboardService_1.default.getMonthlyPerformanceTrend(userId);
+            res.status(200).json({
+                success: true,
+                message: 'Monthly performance retrieved successfully',
+                data: performanceTrend,
+            });
+        }
+        catch (error) {
+            console.error('[DASHBOARD] Error getting monthly performance:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error retrieving monthly performance',
+                error: error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
+    }
+    async getBalanceAndPerformance(req, res) {
+        try {
+            const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+            const balanceAndPerformance = await dashboardService_1.default.getBalanceAndPerformance(userId);
+            res.status(200).json({
+                success: true,
+                message: 'Balance and performance retrieved successfully',
+                data: balanceAndPerformance,
+            });
+        }
+        catch (error) {
+            console.error('[DASHBOARD] Error getting balance and performance:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error retrieving balance and performance',
+                error: error instanceof Error ? error.message : 'Unknown error',
             });
         }
     }

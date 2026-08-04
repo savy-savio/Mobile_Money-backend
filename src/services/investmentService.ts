@@ -2,6 +2,8 @@ import InvestmentPlan, { IInvestmentPlan } from '../models/InvestmentPlan';
 import UserInvestment, { IUserInvestment } from '../models/UserInvestment';
 import Payment from '../models/Payment';
 import savingsService from './savingsService';
+import emailService from './emailService';
+import UserModel from '../models/User';
 import mongoose from 'mongoose';
 
 export class InvestmentService {
@@ -29,14 +31,29 @@ export class InvestmentService {
     userId: string,
     planId: string,
     amount: number,
-    stripePaymentId: string
+    paymentId?: string,
+    actualAmount?: number // The actual amount received (may differ from expected due to exchange rates)
   ): Promise<IUserInvestment> {
     const plan = await this.getPlanById(planId);
     if (!plan) {
       throw new Error('Investment plan not found');
     }
 
-    if (amount < plan.minInvestment) {
+    // Check if user already has an active investment in this plan
+    const existingActiveInvestment = await UserInvestment.findOne({
+      userId,
+      planId: new mongoose.Types.ObjectId(planId),
+      status: 'active'
+    }).exec();
+
+    if (existingActiveInvestment) {
+      throw new Error(`You already have an active investment in ${plan.name}. Please complete or cancel it before investing again.`);
+    }
+
+    // Use actual amount if provided, otherwise use expected amount
+    const investmentAmount = actualAmount || amount;
+
+    if (investmentAmount < plan.minInvestment) {
       throw new Error(`Minimum investment is $${plan.minInvestment}`);
     }
 
@@ -44,15 +61,17 @@ export class InvestmentService {
     const maturityDate = new Date(investmentDate);
     maturityDate.setMonth(maturityDate.getMonth() + plan.duration);
 
-    // Calculate initial monthly performance
+    // Calculate initial monthly performance using LINEAR return (not compound)
+    // If plan promises 25% over 12 months, that's 25/12 = 2.083% per month
     const monthlyPerformance = [];
     const monthlyReturnRate = plan.expectedReturn / plan.duration / 100;
 
     for (let i = 0; i < plan.duration; i++) {
       const perfDate = new Date(investmentDate);
       perfDate.setMonth(perfDate.getMonth() + i);
-      const currentValue = amount * Math.pow(1 + monthlyReturnRate, i + 1);
-      const monthlyReturn = currentValue - amount;
+      // Use simple linear growth: investmentAmount * (1 + monthlyRate * months)
+      const currentValue = investmentAmount * (1 + monthlyReturnRate * (i + 1));
+      const monthlyReturn = currentValue - investmentAmount;
 
       monthlyPerformance.push({
         month: perfDate.getMonth() + 1,
@@ -63,30 +82,74 @@ export class InvestmentService {
     }
 
     const finalValue =
-      monthlyPerformance.length > 0 ? monthlyPerformance[monthlyPerformance.length - 1].value : amount;
-    const totalGain = finalValue - amount;
-    const gainPercentage = (totalGain / amount) * 100;
+      monthlyPerformance.length > 0 ? monthlyPerformance[monthlyPerformance.length - 1].value : investmentAmount;
+    const totalGain = finalValue - investmentAmount;
+    const gainPercentage = (totalGain / investmentAmount) * 100;
 
     const investment = new UserInvestment({
       userId,
       planId: new mongoose.Types.ObjectId(planId),
       planName: plan.name,
-      amountInvested: amount,
-      currentValue: amount, // Start with invested amount
+      amountInvested: investmentAmount, // Store the actual amount received
+      currentValue: investmentAmount, // Start with actual invested amount
       gain: 0,
       totalGain,
       gainPercentage,
       monthlyPerformance,
+      transactions: [],
       investmentDate,
       maturityDate,
-      status: 'active',
-      stripePaymentId,
+      status: 'pending', // Start as pending until payment is confirmed
     });
 
     await investment.save();
 
+    // Add initial investment transaction
+    investment.transactions.push({
+      type: 'buy',
+      amount: investmentAmount,
+      valueBefore: 0,
+      valueAfter: investmentAmount,
+      description: `Investment purchase of $${investmentAmount} in ${plan.name}`,
+      timestamp: new Date(),
+    } as any);
+
+    await investment.save();
+
+    // Add investment to user's investments array
+    const user = await UserModel.findById(userId);
+    if (user) {
+      if (!user.investments) {
+        user.investments = [];
+      }
+      user.investments.push(investment._id);
+      await user.save();
+      console.log(`[INVESTMENT] Added investment ${investment._id} to user ${userId}'s portfolio`);
+    }
+
     // Ensure user has savings account
     await savingsService.createSavingsAccount(userId);
+
+    // Send investment confirmation email
+    try {
+      if (user && user.email) {
+        const emailHtml = emailService.generateInvestmentConfirmationEmailHtml(
+          user.firstName || 'Valued User',
+          plan.name,
+          amount,
+          'USD'
+        );
+        await emailService.sendEmail({
+          to: user.email,
+          subject: 'Investment Confirmation - Crown Ledger',
+          html: emailHtml,
+        });
+        console.log(`[INVESTMENT] Confirmation email sent to ${user.email}`);
+      }
+    } catch (emailError) {
+      console.error('[INVESTMENT] Error sending confirmation email:', emailError);
+      // Don't throw - email failure shouldn't block investment creation
+    }
 
     console.log(`[INVESTMENT] Created investment of $${amount} for user ${userId}`);
     return investment;
@@ -115,12 +178,25 @@ export class InvestmentService {
   async getPortfolioSummary(userId: string) {
     const investments = await UserInvestment.find({ userId, status: 'active' }).exec();
 
-    const totalInvested = investments.reduce((sum, inv) => sum + inv.amountInvested, 0);
-    const portfolioValue = investments.reduce((sum, inv) => sum + inv.currentValue, 0);
+    let totalInvested = 0;
+    let portfolioValue = 0;
+
+    // Calculate portfolio value from latest monthly performance (not from currentValue which is static)
+    investments.forEach((inv) => {
+      totalInvested += inv.amountInvested;
+      
+      // Get latest value from monthlyPerformance, fall back to currentValue if none exist
+      if (inv.monthlyPerformance && inv.monthlyPerformance.length > 0) {
+        portfolioValue += inv.monthlyPerformance[inv.monthlyPerformance.length - 1].value;
+      } else {
+        portfolioValue += inv.currentValue;
+      }
+    });
+
     const totalGains = portfolioValue - totalInvested;
-    const avgReturn = investments.length > 0 
-      ? (investments.reduce((sum, inv) => sum + inv.gainPercentage, 0) / investments.length)
-      : 0;
+    
+    // Calculate weighted average return: (totalGains / totalInvested) * 100
+    const avgReturn = totalInvested > 0 ? (totalGains / totalInvested) * 100 : 0;
 
     return {
       totalInvested: Math.round(totalInvested * 100) / 100,
@@ -165,6 +241,90 @@ export class InvestmentService {
       });
 
     return performanceData;
+  }
+
+  /**
+   * Get 12-month portfolio growth trend
+   */
+  async getPortfolioGrowthTrend(userId: string) {
+    const investments = await UserInvestment.find({ userId, status: 'active' }).exec();
+
+    // Create a map to aggregate monthly values and track initial investment
+    const performanceMap = new Map<string, { value: number; totalInvested: number }>();
+    let totalInitialInvestment = 0;
+
+    // Calculate total initial investment
+    investments.forEach((investment) => {
+      totalInitialInvestment += investment.amountInvested;
+    });
+
+    // Aggregate monthly portfolio values
+    investments.forEach((investment) => {
+      investment.monthlyPerformance.forEach((perf: any) => {
+        const key = `${perf.year}-${String(perf.month).padStart(2, '0')}`;
+        const existing = performanceMap.get(key) || { value: 0, totalInvested: 0 };
+        existing.value += perf.value;
+        existing.totalInvested = totalInitialInvestment;
+        performanceMap.set(key, existing);
+      });
+    });
+
+    // Convert to sorted array and limit to last 12 months
+    let trendData = Array.from(performanceMap.entries())
+      .map(([key, data]) => {
+        const [year, month] = key.split('-');
+        const currentValue = Math.round(data.value * 100) / 100;
+        const monthlyGain = currentValue - data.totalInvested;
+        const monthlyGainPercentage = data.totalInvested > 0 
+          ? (monthlyGain / data.totalInvested) * 100 
+          : 0;
+
+        return {
+          month: parseInt(month),
+          year: parseInt(year),
+          monthName: new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+          value: currentValue,
+          gain: Math.round(monthlyGain * 100) / 100,
+          gainPercentage: Math.round(monthlyGainPercentage * 100) / 100,
+        };
+      })
+      .sort((a, b) => {
+        if (a.year === b.year) return a.month - b.month;
+        return a.year - b.year;
+      });
+
+    // Get last 12 months only
+    trendData = trendData.slice(Math.max(0, trendData.length - 12));
+
+    // Calculate summary metrics
+    const firstMonth = trendData[0];
+    const lastMonth = trendData[trendData.length - 1];
+    
+    const startingValue = totalInitialInvestment;
+    const currentValue = lastMonth?.value || totalInitialInvestment;
+    const totalGain = currentValue - startingValue;
+    const totalGainPercentage = startingValue > 0 ? (totalGain / startingValue) * 100 : 0;
+
+    // Calculate average monthly growth
+    const monthlyGrowths = trendData.map(t => t.gainPercentage);
+    const averageMonthlyGrowth = monthlyGrowths.length > 0 
+      ? monthlyGrowths.reduce((a, b) => a + b, 0) / monthlyGrowths.length 
+      : 0;
+
+    return {
+      trendData,
+      summary: {
+        startingValue: Math.round(startingValue * 100) / 100,
+        currentValue: Math.round(currentValue * 100) / 100,
+        totalGain: Math.round(totalGain * 100) / 100,
+        totalGainPercentage: Math.round(totalGainPercentage * 100) / 100,
+        averageMonthlyGrowth: Math.round(averageMonthlyGrowth * 100) / 100,
+        months: trendData.length,
+        highestValue: Math.round(Math.max(...trendData.map(t => t.value)) * 100) / 100,
+        lowestValue: Math.round(Math.min(...trendData.map(t => t.value)) * 100) / 100,
+      },
+      lastUpdated: new Date(),
+    };
   }
 
   /**
@@ -218,7 +378,126 @@ export class InvestmentService {
    * Cancel investment
    */
   async cancelInvestment(investmentId: string): Promise<IUserInvestment | null> {
+    const investment = await this.getInvestmentById(investmentId);
+    if (!investment) {
+      return null;
+    }
+
+    const valueBefore = investment.currentValue;
+    const valueAfter = 0; // After cancellation, value is 0
+
+    // Add cancellation transaction
+    investment.transactions.push({
+      type: 'sell',
+      amount: valueBefore,
+      valueBefore,
+      valueAfter,
+      description: `Investment cancelled`,
+      timestamp: new Date(),
+    } as any);
+
+    await investment.save();
+
     return this.updateInvestmentStatus(investmentId, 'cancelled');
+  }
+
+  /**
+   * Activate investment plan (when first investment is made)
+   */
+  async activatePlan(planId: string): Promise<IInvestmentPlan | null> {
+    if (!mongoose.Types.ObjectId.isValid(planId)) {
+      return null;
+    }
+    
+    const plan = await InvestmentPlan.findByIdAndUpdate(
+      planId,
+      { status: 'active' },
+      { new: true }
+    ).exec();
+
+    if (plan) {
+      console.log(`[INVESTMENT] Plan ${plan.name} activated after first investment`);
+    }
+
+    return plan;
+  }
+
+  /**
+   * Get transaction history for an investment
+   */
+  async getTransactionHistory(investmentId: string, limit: number = 50) {
+    try {
+      const investment = await this.getInvestmentById(investmentId);
+      if (!investment) {
+        return [];
+      }
+
+      return investment.transactions.slice(-limit).reverse();
+    } catch (error) {
+      console.error('[INVESTMENT] Error getting transaction history:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all transactions for a user across all investments
+   */
+  async getUserTransactionHistory(userId: string, limit: number = 50) {
+    try {
+      const investments = await this.getUserInvestments(userId);
+      
+      // Flatten all transactions from all investments
+      const allTransactions: any[] = [];
+      investments.forEach((investment) => {
+        investment.transactions.forEach((transaction) => {
+          allTransactions.push({
+            ...transaction,
+            investmentId: investment._id,
+            planName: investment.planName,
+          });
+        });
+      });
+
+      // Sort by timestamp descending and return limit
+      return allTransactions
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, limit);
+    } catch (error) {
+      console.error('[INVESTMENT] Error getting user transaction history:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Record a dividend or gain update transaction
+   */
+  async recordGainUpdate(investmentId: string, gainAmount: number): Promise<IUserInvestment | null> {
+    try {
+      const investment = await this.getInvestmentById(investmentId);
+      if (!investment) {
+        return null;
+      }
+
+      const valueBefore = investment.currentValue;
+      const valueAfter = valueBefore + gainAmount;
+
+      investment.transactions.push({
+        type: 'gain_update',
+        amount: gainAmount,
+        valueBefore,
+        valueAfter,
+        description: `Portfolio gain update: +$${gainAmount}`,
+        timestamp: new Date(),
+      } as any);
+
+      investment.currentValue = valueAfter;
+      await investment.save();
+
+      return investment;
+    } catch (error) {
+      console.error('[INVESTMENT] Error recording gain update:', error);
+      throw error;
+    }
   }
 
   /**
@@ -234,10 +513,10 @@ export class InvestmentService {
       {
         name: 'Premium Plan',
         description: 'Balanced investment portfolio with moderate risk',
-        minInvestment: 5000,
+        minInvestment: 5,
         duration: 12,
         riskLevel: 'Medium',
-        expectedReturn: 15,
+        expectedReturn: 25,
         assetAllocation: {
           equities: 42,
           realEstate: 28,
@@ -265,7 +544,7 @@ export class InvestmentService {
         minInvestment: 25000,
         duration: 36,
         riskLevel: 'High',
-        expectedReturn: 30,
+        expectedReturn: 25,
         assetAllocation: {
           equities: 55,
           realEstate: 30,
@@ -279,7 +558,7 @@ export class InvestmentService {
         minInvestment: 15000,
         duration: 24,
         riskLevel: 'Medium',
-        expectedReturn: 20,
+        expectedReturn: 25,
         assetAllocation: {
           equities: 15,
           realEstate: 70,
@@ -293,7 +572,7 @@ export class InvestmentService {
         minInvestment: 8000,
         duration: 18,
         riskLevel: 'Low',
-        expectedReturn: 18,
+        expectedReturn: 25,
         assetAllocation: {
           equities: 10,
           realEstate: 15,

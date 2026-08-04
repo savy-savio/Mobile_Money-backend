@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PaymentController = void 0;
 const cashAppService_1 = __importDefault(require("../services/cashAppService"));
 const bitcoinService_1 = __importDefault(require("../services/bitcoinService"));
+const investmentService_1 = __importDefault(require("../services/investmentService"));
+const savingsService_1 = __importDefault(require("../services/savingsService"));
 const Payment_1 = __importDefault(require("../models/Payment"));
 class PaymentController {
     /**
@@ -286,6 +288,117 @@ class PaymentController {
                     amount: payment.bitcoinAmountBTC,
                     amountUSD: payment.bitcoinAmountUSD,
                     paymentReference: payment.paymentReference,
+                },
+            });
+        }
+        catch (error) {
+            const err = error;
+            res.status(500).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+    /**
+     * Verify Bitcoin payment by reference and transaction hash
+     * New approach: User provides reference + tx hash after sending Bitcoin
+     */
+    async verifyBitcoinPaymentByReference(req, res) {
+        try {
+            const { paymentReference, bitcoinTransactionHash, confirmations = 1 } = req.body;
+            if (!paymentReference || !bitcoinTransactionHash) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Missing required fields: paymentReference, bitcoinTransactionHash',
+                });
+                return;
+            }
+            // Verify payment using reference - queries blockchain to verify actual amount
+            const payment = await bitcoinService_1.default.verifyPaymentByReference(paymentReference, bitcoinTransactionHash, confirmations);
+            res.status(200).json({
+                success: true,
+                message: 'Bitcoin payment verified successfully via reference',
+                data: {
+                    paymentId: payment._id,
+                    paymentReference: payment.paymentReference,
+                    status: payment.status,
+                    amount: payment.amount,
+                    currency: payment.currency,
+                    transactionHash: bitcoinTransactionHash,
+                    confirmations,
+                    verifiedAt: payment.verifiedAt,
+                },
+            });
+        }
+        catch (error) {
+            const err = error;
+            res.status(500).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+    /**
+     * Complete Bitcoin payment and create investment
+     * Call this after verifying the Bitcoin payment to finalize the investment
+     */
+    async completeBitcoinPayment(req, res) {
+        try {
+            const { paymentReference } = req.body;
+            if (!paymentReference) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Missing required field: paymentReference',
+                });
+                return;
+            }
+            // Complete payment and create investment
+            const investment = await bitcoinService_1.default.completePaymentAndCreateInvestment(paymentReference, investmentService_1.default);
+            res.status(201).json({
+                success: true,
+                message: 'Investment created successfully after Bitcoin payment verification',
+                data: {
+                    investmentId: investment._id,
+                    planName: investment.planName,
+                    amountInvested: investment.amountInvested,
+                    status: investment.status,
+                    maturityDate: investment.maturityDate,
+                },
+            });
+        }
+        catch (error) {
+            const err = error;
+            res.status(500).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+    /**
+     * Complete Bitcoin payment and deposit to savings
+     * Call this after verifying the Bitcoin payment to finalize the savings deposit
+     */
+    async completeBitcoinPaymentSavings(req, res) {
+        try {
+            const { paymentReference } = req.body;
+            if (!paymentReference) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Missing required field: paymentReference',
+                });
+                return;
+            }
+            // Complete payment and deposit to savings
+            const savings = await bitcoinService_1.default.completePaymentAndDepositSavings(paymentReference, savingsService_1.default);
+            res.status(201).json({
+                success: true,
+                message: 'Savings deposit completed successfully after Bitcoin payment verification',
+                data: {
+                    savingsId: savings._id,
+                    balance: savings.balance,
+                    amountDeposited: savings.totalDeposited,
+                    apy: savings.apy,
+                    monthlyInterest: ((savings.balance * (savings.apy / 12)) / 100).toFixed(2),
                 },
             });
         }

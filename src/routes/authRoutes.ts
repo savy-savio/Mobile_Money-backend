@@ -7,7 +7,9 @@ import {
   validateResetPassword,
   validateVerifyEmail,
   validateRefreshToken,
+  validateChangePassword,
 } from '../middleware/validators';
+import { authenticateToken } from '../middleware/authMiddleware';
 
 const router = Router();
 
@@ -58,5 +60,18 @@ router.post('/forgot-password', validateForgotPassword, AuthController.forgotPas
  * @public
  */
 router.post('/reset-password', validateResetPassword, AuthController.resetPassword);
+
+/**
+ * @route   POST /api/auth/change-password
+ * @desc    Change password for authenticated user
+ * @body    oldPassword, newPassword, confirmPassword
+ * @private (requires JWT authentication)
+ */
+router.post(
+  '/change-password',
+  authenticateToken,
+  validateChangePassword,
+  AuthController.changePassword
+);
 
 export default router;
