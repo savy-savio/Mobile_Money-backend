@@ -37,6 +37,32 @@ class EmailService {
     }
   }
 
+  private logoHeaderHtml(): string {
+    return `
+      <table class="logo-table" role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+        <tr>
+          <td>
+            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
+          </td>
+          <td class="logo-text-cell">
+            <div class="logo-text">Crown <span class="brand">Ledger</span></div>
+          </td>
+        </tr>
+      </table>
+    `;
+  }
+
+  private logoHeaderStyles(): string {
+    return `
+      .logo-table { margin: 0 auto 20px auto; border-collapse: collapse; }
+      .logo-table td { vertical-align: left; padding: 0; }
+      .logo-img { width: 44px; height: 44px; display: block; padding: 12px;}
+      .logo-text-cell { padding-left: 14px; }
+      .logo-text { font-size: 18px; font-weight: 800; color: #111827; white-space: nowrap; }
+      .logo-text .brand { color: #FA510F; }
+    `;
+  }
+
   generateVerificationEmailHtml(fullName: string, verificationLink: string): string {
     return `
       <!DOCTYPE html>
@@ -48,10 +74,7 @@ class EmailService {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
             .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
             .header { text-align: center; margin-bottom: 30px; }
-            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
-            .logo-img { width: 44px; height: 44px; }
-            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
-            .logo-text .brand { color: #FA510F; }
+            ${this.logoHeaderStyles()}
             .content { margin-bottom: 30px; }
             .button { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #FA510F 0%, #D94309 100%); color: #ffffff; text-decoration: none; border-radius: 10px; margin: 20px 0; font-weight: 600; box-shadow: 0 4px 12px rgba(250,81,15,0.3); }
             .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
@@ -62,10 +85,7 @@ class EmailService {
           <div class="container">
             <div class="email-body">
               <div class="header">
-                <div class="logo-container">
-                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
-                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
-                </div>
+                ${this.logoHeaderHtml()}
               </div>
               <div class="content">
                 <h2>Welcome, ${fullName}!</h2>
@@ -97,10 +117,7 @@ class EmailService {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
             .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
             .header { text-align: center; margin-bottom: 30px; }
-            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
-            .logo-img { width: 44px; height: 44px; }
-            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
-            .logo-text .brand { color: #FA510F; }
+            ${this.logoHeaderStyles()}
             .content { margin-bottom: 30px; }
             .button { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #FA510F 0%, #D94309 100%); color: #ffffff; text-decoration: none; border-radius: 10px; margin: 20px 0; font-weight: 600; box-shadow: 0 4px 12px rgba(250,81,15,0.3); }
             .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
@@ -111,10 +128,7 @@ class EmailService {
           <div class="container">
             <div class="email-body">
               <div class="header">
-                <div class="logo-container">
-                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
-                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
-                </div>
+                ${this.logoHeaderHtml()}
               </div>
               <div class="content">
                 <h2>Password Reset Request</h2>
@@ -147,10 +161,7 @@ class EmailService {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
             .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
             .header { text-align: center; margin-bottom: 30px; }
-            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
-            .logo-img { width: 44px; height: 44px; }
-            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
-            .logo-text .brand { color: #FA510F; }
+            ${this.logoHeaderStyles()}
             .content { margin-bottom: 30px; }
             .feature-list { list-style: none; padding: 0; }
             .feature-list li { padding: 10px 0; padding-left: 28px; position: relative; color: #374151; }
@@ -162,10 +173,7 @@ class EmailService {
           <div class="container">
             <div class="email-body">
               <div class="header">
-                <div class="logo-container">
-                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
-                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
-                </div>
+                ${this.logoHeaderHtml()}
               </div>
               <div class="content">
                 <h2>Welcome to Crown Ledger, ${fullName}!</h2>
@@ -202,10 +210,7 @@ class EmailService {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
             .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
             .header { text-align: center; margin-bottom: 30px; }
-            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
-            .logo-img { width: 44px; height: 44px; }
-            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
-            .logo-text .brand { color: #FA510F; }
+            ${this.logoHeaderStyles()}
             .content { margin-bottom: 30px; }
             .alert-box { background-color: #FFF4F0; border-left: 4px solid #FA510F; padding: 15px; margin: 20px 0; border-radius: 8px; }
             .alert-box p { color: #6B4423; margin: 8px 0; }
@@ -216,10 +221,7 @@ class EmailService {
           <div class="container">
             <div class="email-body">
               <div class="header">
-                <div class="logo-container">
-                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
-                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
-                </div>
+                ${this.logoHeaderHtml()}
               </div>
               <div class="content">
                 <h2>Login Notification</h2>
@@ -254,10 +256,7 @@ class EmailService {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
             .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
             .header { text-align: center; margin-bottom: 30px; }
-            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
-            .logo-img { width: 44px; height: 44px; }
-            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
-            .logo-text .brand { color: #FA510F; }
+            ${this.logoHeaderStyles()}
             .content { margin-bottom: 30px; }
             .success-box { background-color: #F0FDF4; border-left: 4px solid #10B981; padding: 15px; margin: 20px 0; border-radius: 8px; }
             .success-box p { color: #065F46; margin: 8px 0; }
@@ -268,10 +267,7 @@ class EmailService {
           <div class="container">
             <div class="email-body">
               <div class="header">
-                <div class="logo-container">
-                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
-                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
-                </div>
+                ${this.logoHeaderHtml()}
               </div>
               <div class="content">
                 <h2>Investment Confirmed</h2>
@@ -307,10 +303,7 @@ class EmailService {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
             .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
             .header { text-align: center; margin-bottom: 30px; }
-            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
-            .logo-img { width: 44px; height: 44px; }
-            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
-            .logo-text .brand { color: #FA510F; }
+            ${this.logoHeaderStyles()}
             .content { margin-bottom: 30px; }
             .info-box { background-color: #EFF6FF; border-left: 4px solid #3B82F6; padding: 15px; margin: 20px 0; border-radius: 8px; }
             .info-box p { color: #1E40AF; margin: 8px 0; }
@@ -321,10 +314,7 @@ class EmailService {
           <div class="container">
             <div class="email-body">
               <div class="header">
-                <div class="logo-container">
-                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
-                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
-                </div>
+                ${this.logoHeaderHtml()}
               </div>
               <div class="content">
                 <h2>Savings Account Created</h2>
@@ -370,10 +360,7 @@ class EmailService {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
             .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
             .header { text-align: center; margin-bottom: 30px; }
-            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
-            .logo-img { width: 44px; height: 44px; }
-            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
-            .logo-text .brand { color: #FA510F; }
+            ${this.logoHeaderStyles()}
             .content { margin-bottom: 30px; }
             .success-box { background-color: #F0FDF4; border-left: 4px solid #10B981; padding: 15px; margin: 20px 0; border-radius: 8px; }
             .success-box p { color: #065F46; margin: 8px 0; }
@@ -384,10 +371,7 @@ class EmailService {
           <div class="container">
             <div class="email-body">
               <div class="header">
-                <div class="logo-container">
-                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
-                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
-                </div>
+                ${this.logoHeaderHtml()}
               </div>
               <div class="content">
                 <h2>Savings Deposit Confirmed</h2>
@@ -432,10 +416,7 @@ class EmailService {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
             .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
             .header { text-align: center; margin-bottom: 30px; }
-            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
-            .logo-img { width: 44px; height: 44px; }
-            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
-            .logo-text .brand { color: #FA510F; }
+            ${this.logoHeaderStyles()}
             .content { margin-bottom: 30px; }
             .success-box { background-color: #F0FDF4; border-left: 4px solid #10B981; padding: 15px; margin: 20px 0; border-radius: 8px; }
             .success-box p { color: #065F46; margin: 8px 0; }
@@ -446,10 +427,7 @@ class EmailService {
           <div class="container">
             <div class="email-body">
               <div class="header">
-                <div class="logo-container">
-                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
-                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
-                </div>
+                ${this.logoHeaderHtml()}
               </div>
               <div class="content">
                 <h2>Your Savings Plan is Ready!</h2>
@@ -488,10 +466,7 @@ class EmailService {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
             .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
             .header { text-align: center; margin-bottom: 30px; }
-            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
-            .logo-img { width: 44px; height: 44px; }
-            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
-            .logo-text .brand { color: #FA510F; }
+            ${this.logoHeaderStyles()}
             .content { margin-bottom: 30px; }
             .reminder-box { background-color: #FEF3C7; border-left: 4px solid #F59E0B; padding: 15px; margin: 20px 0; border-radius: 8px; }
             .reminder-box p { color: #92400E; margin: 8px 0; }
@@ -503,10 +478,7 @@ class EmailService {
           <div class="container">
             <div class="email-body">
               <div class="header">
-                <div class="logo-container">
-                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
-                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
-                </div>
+                ${this.logoHeaderHtml()}
               </div>
               <div class="content">
                 <h2>Time to Save!</h2>
@@ -542,10 +514,7 @@ class EmailService {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
             .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
             .header { text-align: center; margin-bottom: 30px; }
-            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
-            .logo-img { width: 44px; height: 44px; }
-            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
-            .logo-text .brand { color: #FA510F; }
+            ${this.logoHeaderStyles()}
             .content { margin-bottom: 30px; }
             .security-box { background-color: #DBEAFE; border-left: 4px solid #0284C7; padding: 15px; margin: 20px 0; border-radius: 8px; }
             .security-box p { color: #075985; margin: 8px 0; }
@@ -560,10 +529,7 @@ class EmailService {
           <div class="container">
             <div class="email-body">
               <div class="header">
-                <div class="logo-container">
-                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
-                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
-                </div>
+                ${this.logoHeaderHtml()}
               </div>
               <div class="content">
                 <h2>Password Changed Successfully</h2>
@@ -604,10 +570,7 @@ class EmailService {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
             .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
             .header { text-align: center; margin-bottom: 30px; }
-            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
-            .logo-img { width: 44px; height: 44px; }
-            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
-            .logo-text .brand { color: #FA510F; }
+            ${this.logoHeaderStyles()}
             .content { margin-bottom: 30px; }
             .ticket-box { background-color: #F0FDF4; border-left: 4px solid #10B981; padding: 15px; margin: 20px 0; border-radius: 8px; }
             .ticket-box p { color: #065F46; margin: 8px 0; }
@@ -619,10 +582,7 @@ class EmailService {
           <div class="container">
             <div class="email-body">
               <div class="header">
-                <div class="logo-container">
-                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
-                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
-                </div>
+                ${this.logoHeaderHtml()}
               </div>
               <div class="content">
                 <h2>Support Ticket Received</h2>
@@ -730,10 +690,7 @@ class EmailService {
             .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
             .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
             .header { text-align: center; margin-bottom: 30px; }
-            .logo-container { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
-            .logo-img { width: 44px; height: 44px; }
-            .logo-text { font-size: 18px; font-weight: 800; color: #111827; }
-            .logo-text .brand { color: #FA510F; }
+            ${this.logoHeaderStyles()}
             .content { margin-bottom: 30px; }
             .status-badge { display: inline-block; padding: 10px 20px; border-radius: 20px; color: white; font-weight: bold; margin: 10px 0; }
             .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
@@ -743,10 +700,7 @@ class EmailService {
           <div class="container">
             <div class="email-body">
               <div class="header">
-                <div class="logo-container">
-                  <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
-                  <div class="logo-text">Crown <span class="brand">Ledger</span></div>
-                </div>
+                ${this.logoHeaderHtml()}
               </div>
               <div class="content">
                 <h2>Support Ticket Update</h2>
