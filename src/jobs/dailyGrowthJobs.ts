@@ -14,16 +14,16 @@ class DailyGrowthJob {
   static start() {
     // Schedule job to run daily at 2:00 AM (02:00)
     cron.schedule('0 2 * * *', async () => {
-      console.log('[DAILY-GROWTH-JOB] Starting daily growth calculation...');
+      // console.log('[DAILY-GROWTH-JOB] Starting daily growth calculation...');
       try {
         await this.calculateDailyGrowth();
-        console.log('[DAILY-GROWTH-JOB] Daily growth calculation completed successfully');
+        // console.log('[DAILY-GROWTH-JOB] Daily growth calculation completed successfully');
       } catch (error) {
         console.error('[DAILY-GROWTH-JOB] Error in daily growth job:', error);
       }
     });
 
-    console.log('[DAILY-GROWTH-JOB] Daily growth job scheduled to run at 2:00 AM daily');
+    // console.log('[DAILY-GROWTH-JOB] Daily growth job scheduled to run at 2:00 AM daily');
   }
 
   /**

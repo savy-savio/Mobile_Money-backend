@@ -64,7 +64,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Debug middleware to log requests
 app.use((req: Request, res: Response, next: NextFunction) => {
-  console.log('[v0] Incoming request:', {
+  console.log('[v0] Incoming request:', 
+    {
     method: req.method,
     path: req.path,
     contentType: req.headers['content-type'],

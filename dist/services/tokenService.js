@@ -7,16 +7,16 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const crypto_1 = __importDefault(require("crypto"));
 class TokenService {
     constructor() {
+        // console.log("========== TOKEN SERVICE ==========");
+        // console.log("JWT_SECRET:", process.env.JWT_SECRET);
+        // console.log("JWT_ACCESS_SECRET:", process.env.JWT_ACCESS_SECRET);
+        // console.log("JWT_REFRESH_SECRET:", process.env.JWT_REFRESH_SECRET);
+        // console.log("Access Secret Used:", this.jwtSecret);
+        // console.log("Refresh Secret Used:", this.refreshSecret);
+        // console.log("===================================");
         // Use dedicated secrets
         this.jwtSecret = process.env.JWT_ACCESS_SECRET || "your-super-secret-access-key";
         this.refreshSecret = process.env.JWT_REFRESH_SECRET || "your-super-secret-refresh-key";
-        console.log("========== TOKEN SERVICE ==========");
-        console.log("JWT_SECRET:", process.env.JWT_SECRET);
-        console.log("JWT_ACCESS_SECRET:", process.env.JWT_ACCESS_SECRET);
-        console.log("JWT_REFRESH_SECRET:", process.env.JWT_REFRESH_SECRET);
-        console.log("Access Secret Used:", this.jwtSecret);
-        console.log("Refresh Secret Used:", this.refreshSecret);
-        console.log("===================================");
         if (!process.env.JWT_ACCESS_SECRET) {
             console.warn("[TOKEN] ⚠️ WARNING: JWT_ACCESS_SECRET not found in environment variables.");
         }
@@ -28,25 +28,25 @@ class TokenService {
         const token = jsonwebtoken_1.default.sign(payload, this.jwtSecret, {
             expiresIn: "7d",
         });
-        console.log("[TOKEN] Access token generated.");
+        // console.log("[TOKEN] Access token generated.");
         return token;
     }
     generateRefreshToken(payload) {
         const token = jsonwebtoken_1.default.sign(payload, this.refreshSecret, {
             expiresIn: "30d",
         });
-        console.log("[TOKEN] Refresh token generated.");
+        // console.log("[TOKEN] Refresh token generated.");
         return token;
     }
     verifyAccessToken(token) {
         try {
-            console.log("[TOKEN] Verifying access token...");
-            console.log("[TOKEN] Secret Used:", this.jwtSecret);
+            // console.log("[TOKEN] Verifying access token...");
+            // console.log("[TOKEN] Secret Used:", this.jwtSecret);
             // Decode first (without verifying) for debugging
             const decoded = jsonwebtoken_1.default.decode(token);
-            console.log("[TOKEN] Decoded Payload:", decoded);
+            // console.log("[TOKEN] Decoded Payload:", decoded);
             const verified = jsonwebtoken_1.default.verify(token, this.jwtSecret);
-            console.log("[TOKEN] Access token verified successfully.");
+            // console.log("[TOKEN] Access token verified successfully.");
             return verified;
         }
         catch (error) {
@@ -60,12 +60,12 @@ class TokenService {
     }
     verifyRefreshToken(token) {
         try {
-            console.log("[TOKEN] Verifying refresh token...");
-            console.log("[TOKEN] Secret Used:", this.refreshSecret);
+            // console.log("[TOKEN] Verifying refresh token...");
+            // console.log("[TOKEN] Secret Used:", this.refreshSecret);
             const decoded = jsonwebtoken_1.default.decode(token);
-            console.log("[TOKEN] Decoded Payload:", decoded);
+            // console.log("[TOKEN] Decoded Payload:", decoded);
             const verified = jsonwebtoken_1.default.verify(token, this.refreshSecret);
-            console.log("[TOKEN] Refresh token verified successfully.");
+            // console.log("[TOKEN] Refresh token verified successfully.");
             return verified;
         }
         catch (error) {

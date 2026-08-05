@@ -15,13 +15,13 @@ class TokenService {
         process.env.JWT_REFRESH_SECRET || "your-super-secret-refresh-key";
 
     constructor() {
-        console.log("========== TOKEN SERVICE ==========");
-        console.log("JWT_SECRET:", process.env.JWT_SECRET);
-        console.log("JWT_ACCESS_SECRET:", process.env.JWT_ACCESS_SECRET);
-        console.log("JWT_REFRESH_SECRET:", process.env.JWT_REFRESH_SECRET);
-        console.log("Access Secret Used:", this.jwtSecret);
-        console.log("Refresh Secret Used:", this.refreshSecret);
-        console.log("===================================");
+        // console.log("========== TOKEN SERVICE ==========");
+        // console.log("JWT_SECRET:", process.env.JWT_SECRET);
+        // console.log("JWT_ACCESS_SECRET:", process.env.JWT_ACCESS_SECRET);
+        // console.log("JWT_REFRESH_SECRET:", process.env.JWT_REFRESH_SECRET);
+        // console.log("Access Secret Used:", this.jwtSecret);
+        // console.log("Refresh Secret Used:", this.refreshSecret);
+        // console.log("===================================");
 
         if (!process.env.JWT_ACCESS_SECRET) {
             console.warn(
@@ -41,7 +41,7 @@ class TokenService {
             expiresIn: "7d",
         });
 
-        console.log("[TOKEN] Access token generated.");
+        // console.log("[TOKEN] Access token generated.");
         return token;
     }
 
@@ -50,25 +50,25 @@ class TokenService {
             expiresIn: "30d",
         });
 
-        console.log("[TOKEN] Refresh token generated.");
+        // console.log("[TOKEN] Refresh token generated.");
         return token;
     }
 
     verifyAccessToken(token: string): TokenPayload | null {
         try {
-            console.log("[TOKEN] Verifying access token...");
-            console.log("[TOKEN] Secret Used:", this.jwtSecret);
+            // console.log("[TOKEN] Verifying access token...");
+            // console.log("[TOKEN] Secret Used:", this.jwtSecret);
 
             // Decode first (without verifying) for debugging
             const decoded = jwt.decode(token);
-            console.log("[TOKEN] Decoded Payload:", decoded);
+            // console.log("[TOKEN] Decoded Payload:", decoded);
 
             const verified = jwt.verify(
                 token,
                 this.jwtSecret
             ) as TokenPayload;
 
-            console.log("[TOKEN] Access token verified successfully.");
+            // console.log("[TOKEN] Access token verified successfully.");
 
             return verified;
         } catch (error: any) {
@@ -84,18 +84,18 @@ class TokenService {
 
     verifyRefreshToken(token: string): TokenPayload | null {
         try {
-            console.log("[TOKEN] Verifying refresh token...");
-            console.log("[TOKEN] Secret Used:", this.refreshSecret);
+            // console.log("[TOKEN] Verifying refresh token...");
+            // console.log("[TOKEN] Secret Used:", this.refreshSecret);
 
             const decoded = jwt.decode(token);
-            console.log("[TOKEN] Decoded Payload:", decoded);
+            // console.log("[TOKEN] Decoded Payload:", decoded);
 
             const verified = jwt.verify(
                 token,
                 this.refreshSecret
             ) as TokenPayload;
 
-            console.log("[TOKEN] Refresh token verified successfully.");
+            // console.log("[TOKEN] Refresh token verified successfully.");
 
             return verified;
         } catch (error: any) {
