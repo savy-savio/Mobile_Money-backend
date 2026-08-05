@@ -8,7 +8,7 @@ dotenv_1.default.config();
 const mongoose_1 = __importDefault(require("mongoose"));
 const database_1 = require("../config/database");
 const User_1 = __importDefault(require("../models/User"));
-const ADMIN_EMAIL = "okwolig60@gmail.com"; // <-- Replace with your email
+const ADMIN_EMAIL = "ifeanyivitus339@gmail.com"; // <-- Replace with your email
 const seedAdmin = async () => {
     try {
         // Connect to MongoDB

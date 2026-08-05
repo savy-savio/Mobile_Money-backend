@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 import { connectDB } from "../config/database";
 import User from "../models/User";
 
-const ADMIN_EMAIL = "okwolig60@gmail.com"; // <-- Replace with your email
+const ADMIN_EMAIL = "ifeanyivitus339@gmail.com"; // <-- Replace with your email
 
 const seedAdmin = async () => {
   try {
