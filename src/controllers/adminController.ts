@@ -5,6 +5,7 @@ import SavingsPlan from '../models/SavingsPlan';
 import AdminAuditLog from '../models/AdminAuditLog';
 import investmentService from '../services/investmentService';
 import savingsPlansService from '../services/savingsPlansService';
+import emailService from '../services/emailService';
 
 export class AdminController {
   /**
@@ -274,6 +275,28 @@ export class AdminController {
       }
 
       await targetPlan.save();
+
+      // Notify the user after the balance is persisted. Email failure must not
+      // roll back a successful admin balance update.
+      try {
+        if (user.email) {
+          const emailHtml = emailService.generateAdminSavingsBalanceUpdateEmailHtml(
+            user.firstName || 'Valued User',
+            amount,
+            balanceBefore,
+            balanceAfter,
+            targetPlan.planName,
+            reason || 'Manual admin adjustment'
+          );
+          await emailService.sendEmail({
+            to: user.email,
+            subject: 'Your Savings Balance Was Updated - Crown Ledger',
+            html: emailHtml,
+          });
+        }
+      } catch (emailError) {
+        console.error('[ADMIN] Error sending savings balance update email:', emailError);
+      }
 
       // Log this admin action
       try {
