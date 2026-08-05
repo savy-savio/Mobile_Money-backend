@@ -377,6 +377,54 @@ class EmailService {
       </html>
     `;
     }
+    generateAdminSavingsBalanceUpdateEmailHtml(fullName, amountChanged, balanceBefore, balanceAfter, planName, reason) {
+        const direction = amountChanged >= 0 ? 'increased' : 'decreased';
+        const formattedAmount = Math.abs(amountChanged).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const formattedBefore = balanceBefore.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const formattedAfter = balanceAfter.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: 'DM Sans', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
+            .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+            .header { text-align: center; margin-bottom: 30px; }
+            ${this.logoHeaderStyles()}
+            .update-box { background-color: #FFF7ED; border-left: 4px solid #FA510F; padding: 15px; margin: 20px 0; border-radius: 8px; }
+            .update-box p { color: #7C2D12; margin: 8px 0; }
+            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="email-body">
+              <div class="header">${this.logoHeaderHtml()}</div>
+              <h2>Savings Balance Updated</h2>
+              <p>Hi ${fullName},</p>
+              <p>An administrator has updated your Crown Ledger savings balance.</p>
+              <div class="update-box">
+                <p><strong>Update Details:</strong></p>
+                <p>Savings Plan: <strong>${planName}</strong></p>
+                <p>Amount ${direction}: <strong>$${formattedAmount}</strong></p>
+                <p>Previous Balance: <strong>$${formattedBefore}</strong></p>
+                <p>New Balance: <strong>$${formattedAfter}</strong></p>
+                <p>Reason: <strong>${reason}</strong></p>
+                <p>Date: <strong>${new Date().toLocaleString()}</strong></p>
+              </div>
+              <p>If you do not recognize this change, please contact Crown Ledger support immediately.</p>
+              <div class="footer">
+                <p>&copy; 2026 Crown Ledger. All rights reserved.</p>
+                <p>This is an automated email. Please do not reply.</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    }
     generateSavingsPlanCreatedEmailHtml(fullName, planName, targetAmount, duration, frequency) {
         return `
       <!DOCTYPE html>
