@@ -239,6 +239,7 @@ class AuthController {
                         lastName: user.lastName,
                         username: user.username,
                         accountType: user.accountType,
+                        isAdmin: Boolean(user.isAdmin),
                     },
                 },
             });

@@ -37,6 +37,9 @@ export interface IUser extends Document {
   // Investments
   investments?: mongoose.Types.ObjectId[]; // References to UserInvestment documents
 
+  // Admin
+  isAdmin?: boolean;
+
   // Metadata
   agreedToTerms: boolean;
   createdAt: Date;
@@ -156,6 +159,12 @@ const userSchema = new Schema<IUser>(
       type: [Schema.Types.ObjectId],
       ref: 'UserInvestment',
       default: [],
+    },
+
+    // Admin
+    isAdmin: {
+      type: Boolean,
+      default: false,
     },
 
     // Metadata

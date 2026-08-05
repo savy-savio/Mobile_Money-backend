@@ -105,7 +105,7 @@ const userInvestmentSchema = new mongoose_1.Schema({
     status: {
         type: String,
         required: true,
-        enum: ['active', 'completed', 'cancelled'],
+        enum: ['pending', 'active', 'completed', 'cancelled'],
         default: 'active',
     },
     stripePaymentId: {

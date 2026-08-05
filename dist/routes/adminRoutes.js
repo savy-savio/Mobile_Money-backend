@@ -1,0 +1,49 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const adminController_1 = __importDefault(require("../controllers/adminController"));
+const authMiddleware_1 = require("../middleware/authMiddleware");
+const adminAuthMiddleware_1 = require("../middleware/adminAuthMiddleware");
+const router = (0, express_1.Router)();
+// All admin routes require authentication and admin role
+router.use(authMiddleware_1.authenticateToken);
+router.use(adminAuthMiddleware_1.adminAuthMiddleware);
+/**
+ * @route   GET /api/admin/users-balances
+ * @desc    Get all users with their investment and savings balances
+ * @query   page, limit, searchQuery
+ * @private (requires JWT + Admin role)
+ */
+router.get('/users-balances', adminController_1.default.getAllUsersBalances);
+/**
+ * @route   GET /api/admin/user/:userId/balance-details
+ * @desc    Get detailed balance information for a specific user
+ * @params  userId
+ * @private (requires JWT + Admin role)
+ */
+router.get('/user/:userId/balance-details', adminController_1.default.getUserBalanceDetails);
+/**
+ * @route   PUT /api/admin/user/:userId/update-savings-balance
+ * @desc    Update a user's savings balance
+ * @params  userId
+ * @body    amount (number), reason (string - optional)
+ * @private (requires JWT + Admin role)
+ */
+router.put('/user/:userId/update-savings-balance', adminController_1.default.updateUserSavingsBalance);
+/**
+ * @route   GET /api/admin/audit-logs
+ * @desc    Get admin audit logs of all admin actions
+ * @query   page, limit, actionType, userId
+ * @private (requires JWT + Admin role)
+ */
+router.get('/audit-logs', adminController_1.default.getAuditLogs);
+/**
+ * @route   GET /api/admin/dashboard-summary
+ * @desc    Get admin dashboard summary with key metrics
+ * @private (requires JWT + Admin role)
+ */
+router.get('/dashboard-summary', adminController_1.default.getDashboardSummary);
+exports.default = router;

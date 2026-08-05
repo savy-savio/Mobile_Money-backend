@@ -20,7 +20,7 @@ export interface IUserInvestment extends Document {
   transactions: IInvestmentTransaction[];
   investmentDate: Date;
   maturityDate: Date;
-  status: 'active' | 'completed' | 'cancelled';
+  status: 'pending' | 'active' | 'completed' | 'cancelled';
   stripePaymentId?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -95,7 +95,7 @@ const userInvestmentSchema = new Schema<IUserInvestment>(
     status: {
       type: String,
       required: true,
-      enum: ['active', 'completed', 'cancelled'],
+      enum: ['pending', 'active', 'completed', 'cancelled'],
       default: 'active',
     },
     stripePaymentId: {

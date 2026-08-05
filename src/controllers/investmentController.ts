@@ -7,6 +7,14 @@ import Notification from '../models/Notification';
 import emailService from '../services/emailService';
 import User from '../models/User';
 
+const MIN_INVESTMENT_AMOUNT = 50;
+
+function parseAmount(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  const amount = Number(value);
+  return Number.isFinite(amount) && amount > 0 ? Math.round(amount * 100) / 100 : null;
+}
+
 export class InvestmentController {
   /**
    * Get all investment plans
@@ -64,12 +72,13 @@ export class InvestmentController {
   async initializePayment(req: Request, res: Response): Promise<void> {
     try {
       const { userId, planId, amount, paymentMethod = 'bitcoin' } = req.body;
+      const numericAmount = parseAmount(amount);
 
-      // Validate required fields (planId is optional for savings)
-      if (!userId || !amount) {
+      // Validate required fields and reject NaN, Infinity, zero, and negative values.
+      if (!userId || numericAmount === null) {
         res.status(400).json({
           success: false,
-          message: 'Missing required fields: userId, amount (planId is optional for savings)',
+          message: 'userId and a valid positive amount are required',
         });
         return;
       }
@@ -107,11 +116,12 @@ export class InvestmentController {
           return;
         }
 
-        // Validate minimum investment
-        if (amount < plan.minInvestment) {
+        // Every investment plan now accepts custom amounts from $50 upward.
+        const minimumInvestment = Math.max(MIN_INVESTMENT_AMOUNT, plan.minInvestment);
+        if (numericAmount < minimumInvestment) {
           res.status(400).json({
             success: false,
-            message: `Minimum investment for ${plan.name} is $${plan.minInvestment}`,
+            message: `Minimum investment for ${plan.name} is $${minimumInvestment}`,
           });
           return;
         }
@@ -135,7 +145,7 @@ export class InvestmentController {
         paymentRequest = await bitcoinService.createPaymentRequest(
           userId,
           planId,
-          amount,
+          numericAmount,
           planName
         );
 
@@ -161,7 +171,7 @@ export class InvestmentController {
         paymentRequest = await cashAppService.createPaymentRequest(
           userId,
           planId,
-          amount,
+          numericAmount,
           planName
         );
 
@@ -196,9 +206,10 @@ export class InvestmentController {
   async initializeSavingsPayment(req: Request, res: Response): Promise<void> {
     try {
       const { userId, amount, paymentMethod = 'bitcoin' } = req.body;
+      const numericAmount = parseAmount(amount);
 
       // Validate required fields
-      if (!userId || !amount) {
+      if (!userId || numericAmount === null) {
         res.status(400).json({
           success: false,
           message: 'Missing required fields: userId, amount',
@@ -216,7 +227,7 @@ export class InvestmentController {
       }
 
       // Validate minimum deposit
-      if (amount < 1) {
+      if (numericAmount < 1) {
         res.status(400).json({
           success: false,
           message: 'Minimum savings deposit is $1',
@@ -241,7 +252,7 @@ export class InvestmentController {
         paymentRequest = await bitcoinService.createPaymentRequest(
           userId,
           undefined, // No planId for savings
-          amount,
+          numericAmount,
           paymentMethod
         );
 
@@ -266,7 +277,7 @@ export class InvestmentController {
         paymentRequest = await cashAppService.createPaymentRequest(
           userId,
           undefined, // No planId for savings
-          amount,
+          numericAmount,
           'Savings Deposit'
         );
 
@@ -377,6 +388,15 @@ export class InvestmentController {
         }
       } else {
         await cashAppService.verifyPayment(paymentId, cashAppTransactionId, 'Payment verified via transaction ID');
+      }
+
+      const minimumInvestment = Math.max(MIN_INVESTMENT_AMOUNT, plan.minInvestment);
+      if (!Number.isFinite(actualAmount) || actualAmount < minimumInvestment) {
+        res.status(400).json({
+          success: false,
+          message: `Minimum investment for ${plan.name} is $${minimumInvestment}`,
+        });
+        return;
       }
 
       // Create investment with actual amount received

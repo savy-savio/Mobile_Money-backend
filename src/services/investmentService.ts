@@ -50,11 +50,12 @@ export class InvestmentService {
       throw new Error(`You already have an active investment in ${plan.name}. Please complete or cancel it before investing again.`);
     }
 
-    // Use actual amount if provided, otherwise use expected amount
-    const investmentAmount = actualAmount || amount;
+    // Use the verified amount when available; never let a falsy value bypass validation.
+    const investmentAmount = actualAmount ?? amount;
+    const minimumInvestment = Math.max(50, plan.minInvestment);
 
-    if (investmentAmount < plan.minInvestment) {
-      throw new Error(`Minimum investment is $${plan.minInvestment}`);
+    if (!Number.isFinite(investmentAmount) || investmentAmount < minimumInvestment) {
+      throw new Error(`Minimum investment for ${plan.name} is $${minimumInvestment}`);
     }
 
     const investmentDate = new Date();
@@ -504,19 +505,14 @@ export class InvestmentService {
    * Seed initial investment plans
    */
   async seedInvestmentPlans(): Promise<void> {
-    const existingPlans = await InvestmentPlan.countDocuments();
-    if (existingPlans > 0) {
-      return; // Already seeded
-    }
-
     const plans = [
       {
         name: 'Premium Plan',
         description: 'Balanced investment portfolio with moderate risk',
-        minInvestment: 5,
+        minInvestment: 50,
         duration: 12,
         riskLevel: 'Medium',
-        expectedReturn: 25,
+        expectedReturn: 30,
         assetAllocation: {
           equities: 42,
           realEstate: 28,
@@ -527,10 +523,10 @@ export class InvestmentService {
       {
         name: 'Exclusive Plan',
         description: 'High-growth investment strategy',
-        minInvestment: 10000,
+        minInvestment: 50,
         duration: 24,
         riskLevel: 'High',
-        expectedReturn: 25,
+        expectedReturn: 35,
         assetAllocation: {
           equities: 50,
           realEstate: 25,
@@ -541,10 +537,10 @@ export class InvestmentService {
       {
         name: 'Supreme Plan',
         description: 'Premium long-term wealth building',
-        minInvestment: 25000,
+        minInvestment: 50,
         duration: 36,
         riskLevel: 'High',
-        expectedReturn: 25,
+        expectedReturn: 40,
         assetAllocation: {
           equities: 55,
           realEstate: 30,
@@ -555,10 +551,10 @@ export class InvestmentService {
       {
         name: 'Real Estate Plan',
         description: 'Focus on real estate investment opportunities',
-        minInvestment: 15000,
+        minInvestment: 50,
         duration: 24,
         riskLevel: 'Medium',
-        expectedReturn: 25,
+        expectedReturn: 45,
         assetAllocation: {
           equities: 15,
           realEstate: 70,
@@ -569,10 +565,10 @@ export class InvestmentService {
       {
         name: 'Agricultural Plan',
         description: 'Invest in agricultural and farming ventures',
-        minInvestment: 8000,
+        minInvestment: 50,
         duration: 18,
         riskLevel: 'Low',
-        expectedReturn: 25,
+        expectedReturn: 50,
         assetAllocation: {
           equities: 10,
           realEstate: 15,
@@ -582,7 +578,18 @@ export class InvestmentService {
       },
     ];
 
-    await InvestmentPlan.insertMany(plans);
+    // Upsert configuration by plan name so existing databases receive the new rules
+    // without replacing documents referenced by existing user investments.
+    for (const plan of plans) {
+      const existingPlan = await InvestmentPlan.findOne({ name: plan.name }).exec();
+      if (existingPlan) {
+        existingPlan.minInvestment = plan.minInvestment;
+        existingPlan.expectedReturn = plan.expectedReturn;
+        await existingPlan.save();
+      } else {
+        await InvestmentPlan.create(plan);
+      }
+    }
   }
 }
 

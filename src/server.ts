@@ -12,6 +12,7 @@ import authRoutes from './routes/authRoutes';
 import settingsRoutes from './routes/settingsRoutes';
 import savingsPlansRoutes from './routes/savingsPlansRoutes';
 import investmentService from './services/investmentService';
+import adminRoutes from './routes/adminRoutes';
 // import stripeWebhookController from './controllers/stripeWebhookController';
 import paymentRoutes from './routes/paymentRoutes';
 import savingsRoutes from './routes/savingsRoute';
@@ -125,6 +126,8 @@ app.use('/api/savings-plans', savingsPlansRoutes);
 
 // Contact Support routes
 app.use('/api/support', contactSupportRoutes);
+
+app.use('/api/admin', adminRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

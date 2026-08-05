@@ -139,6 +139,11 @@ const userSchema = new mongoose_1.Schema({
         ref: 'UserInvestment',
         default: [],
     },
+    // Admin
+    isAdmin: {
+        type: Boolean,
+        default: false,
+    },
     // Metadata
     agreedToTerms: {
         type: Boolean,

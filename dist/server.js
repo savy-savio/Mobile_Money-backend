@@ -17,6 +17,7 @@ const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const settingsRoutes_1 = __importDefault(require("./routes/settingsRoutes"));
 const savingsPlansRoutes_1 = __importDefault(require("./routes/savingsPlansRoutes"));
 const investmentService_1 = __importDefault(require("./services/investmentService"));
+const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 // import stripeWebhookController from './controllers/stripeWebhookController';
 const paymentRoutes_1 = __importDefault(require("./routes/paymentRoutes"));
 const savingsRoute_1 = __importDefault(require("./routes/savingsRoute"));
@@ -109,6 +110,7 @@ app.use('/api/savings', savingsRoute_1.default);
 app.use('/api/savings-plans', savingsPlansRoutes_1.default);
 // Contact Support routes
 app.use('/api/support', contactSupportRoutes_1.default);
+app.use('/api/admin', adminRoutes_1.default);
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({
