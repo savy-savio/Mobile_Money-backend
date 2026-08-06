@@ -425,6 +425,34 @@ class EmailService {
       </html>
     `;
     }
+    generateAdminInvestmentBalanceUpdateEmailHtml(fullName, amountChanged, balanceBefore, balanceAfter, planName, reason) {
+        const direction = amountChanged >= 0 ? 'increased' : 'decreased';
+        const money = (value) => value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return `
+      <!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+      body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+      .container { max-width: 600px; margin: 0 auto; padding: 20px; background: #F8F9FC; }
+      .email-body { background: #fff; padding: 30px; border-radius: 16px; }
+      .update-box { background: #FFF7ED; border-left: 4px solid #FA510F; padding: 15px; margin: 20px 0; border-radius: 8px; }
+      .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; }
+      </style></head><body><div class="container"><div class="email-body">
+        <div class="header">${this.logoHeaderHtml()}</div>
+        <h2>Investment Balance Updated</h2>
+        <p>Hi ${fullName},</p>
+        <p>An administrator has updated your Crown Ledger investment balance.</p>
+        <div class="update-box">
+          <p><strong>Investment Plan:</strong> ${planName}</p>
+          <p><strong>Amount ${direction}:</strong> $${money(Math.abs(amountChanged))}</p>
+          <p><strong>Previous Balance:</strong> $${money(balanceBefore)}</p>
+          <p><strong>New Balance:</strong> $${money(balanceAfter)}</p>
+          <p><strong>Reason:</strong> ${reason}</p>
+          <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+        </div>
+        <p>If you do not recognize this change, please contact Crown Ledger support immediately.</p>
+        <div class="footer"><p>&copy; 2026 Crown Ledger. All rights reserved.</p><p>This is an automated email. Please do not reply.</p></div>
+      </div></div></body></html>
+    `;
+    }
     generateSavingsPlanCreatedEmailHtml(fullName, planName, targetAmount, duration, frequency) {
         return `
       <!DOCTYPE html>

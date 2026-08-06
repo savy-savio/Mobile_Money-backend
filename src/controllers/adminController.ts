@@ -345,6 +345,110 @@ export class AdminController {
   }
 
   /**
+   * Update a user's investment current value and notify them by email.
+   * @route PUT /api/admin/user/:userId/update-investment-balance
+   * @access Private (Admin only)
+   * @body amount: number (positive to increase, negative to decrease), investmentId?: string, reason?: string
+   */
+  async updateUserInvestmentBalance(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+      const { amount, investmentId, reason } = req.body;
+      const adminId = (req as any).userId;
+
+      if (!userId) {
+        res.status(400).json({ success: false, message: 'User ID is required' });
+        return;
+      }
+      if (typeof amount !== 'number' || !Number.isFinite(amount) || amount === 0) {
+        res.status(400).json({ success: false, message: 'Amount must be a non-zero number' });
+        return;
+      }
+
+      const user = await User.findById(userId);
+      if (!user) {
+        res.status(404).json({ success: false, message: 'User not found' });
+        return;
+      }
+
+      const investmentQuery: Record<string, unknown> = { userId, status: 'active' };
+      if (investmentId) investmentQuery._id = investmentId;
+      const investments = await UserInvestment.find(investmentQuery);
+      if (investments.length === 0) {
+        res.status(400).json({ success: false, message: 'User has no matching active investments' });
+        return;
+      }
+
+      const targetInvestment = investments.reduce((prev, current) =>
+        prev.currentValue > current.currentValue ? prev : current
+      );
+      const balanceBefore = targetInvestment.currentValue;
+      const balanceAfter = Math.max(0, Math.round((balanceBefore + amount) * 100) / 100);
+      targetInvestment.currentValue = balanceAfter;
+      targetInvestment.totalGain = Math.round((balanceAfter - targetInvestment.amountInvested) * 100) / 100;
+      targetInvestment.gainPercentage = targetInvestment.amountInvested > 0
+        ? Math.round((targetInvestment.totalGain / targetInvestment.amountInvested) * 10000) / 100
+        : 0;
+      await targetInvestment.save();
+
+      try {
+        if (user.email) {
+          const html = emailService.generateAdminInvestmentBalanceUpdateEmailHtml(
+            user.firstName || 'Valued User', amount, balanceBefore, balanceAfter,
+            targetInvestment.planName, reason || 'Manual admin adjustment'
+          );
+          await emailService.sendEmail({
+            to: user.email,
+            subject: 'Your Investment Balance Was Updated - Crown Ledger',
+            html,
+          });
+        }
+      } catch (emailError) {
+        console.error('[ADMIN] Error sending investment balance update email:', emailError);
+      }
+
+      try {
+        await AdminAuditLog.create({
+          adminId,
+          actionType: 'update_investment_balance',
+          targetUserId: userId,
+          details: {
+            investmentId: targetInvestment._id,
+            planName: targetInvestment.planName,
+            amountChanged: amount,
+            balanceBefore,
+            balanceAfter,
+            reason: reason || 'No reason provided',
+          },
+          timestamp: new Date(),
+        });
+      } catch (auditError) {
+        console.error('[ADMIN] Error creating investment audit log:', auditError);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Investment balance updated successfully',
+        data: {
+          userId,
+          investmentId: targetInvestment._id,
+          planName: targetInvestment.planName,
+          amountChanged: amount,
+          balanceBefore,
+          balanceAfter,
+          totalGain: targetInvestment.totalGain,
+          gainPercentage: targetInvestment.gainPercentage,
+          reason: reason || 'Manual admin adjustment',
+        },
+      });
+    } catch (error) {
+      const err = error as Error;
+      console.error('[ADMIN] Error updating user investment balance:', error);
+      res.status(500).json({ success: false, message: err.message || 'Error updating user investment balance' });
+    }
+  }
+
+  /**
    * Get admin audit logs
    * @route GET /api/admin/audit-logs
    * @access Private (Admin only)

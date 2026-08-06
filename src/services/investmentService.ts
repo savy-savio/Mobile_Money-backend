@@ -510,71 +510,76 @@ export class InvestmentService {
         name: 'Premium Plan',
         description: 'Balanced investment portfolio with moderate risk',
         minInvestment: 50,
-        duration: 12,
+        duration: 3,
         riskLevel: 'Medium',
-        expectedReturn: 30,
+        expectedReturn: 40,
         assetAllocation: {
           equities: 42,
           realEstate: 28,
           agriculture: 18,
           bonds: 12,
         },
+        status: 'active',
       },
       {
         name: 'Exclusive Plan',
         description: 'High-growth investment strategy',
         minInvestment: 50,
-        duration: 24,
+        duration: 3,
         riskLevel: 'High',
-        expectedReturn: 35,
+        expectedReturn: 45,
         assetAllocation: {
           equities: 50,
           realEstate: 25,
           agriculture: 20,
           bonds: 5,
         },
+        status: 'active',
       },
       {
         name: 'Supreme Plan',
         description: 'Premium long-term wealth building',
         minInvestment: 50,
-        duration: 36,
+        duration: 4,
         riskLevel: 'High',
-        expectedReturn: 40,
+        expectedReturn: 50,
         assetAllocation: {
           equities: 55,
           realEstate: 30,
           agriculture: 10,
           bonds: 5,
         },
+        status: 'active',
       },
       {
         name: 'Real Estate Plan',
         description: 'Focus on real estate investment opportunities',
         minInvestment: 50,
-        duration: 24,
+        duration: 4,
         riskLevel: 'Medium',
-        expectedReturn: 45,
+        expectedReturn: 55,
         assetAllocation: {
           equities: 15,
           realEstate: 70,
           agriculture: 10,
           bonds: 5,
         },
+        status: 'active',
       },
       {
         name: 'Agricultural Plan',
         description: 'Invest in agricultural and farming ventures',
         minInvestment: 50,
-        duration: 18,
+        duration: 5,
         riskLevel: 'Low',
-        expectedReturn: 50,
+        expectedReturn: 60,
         assetAllocation: {
           equities: 10,
           realEstate: 15,
           agriculture: 70,
           bonds: 5,
         },
+        status: 'active',
       },
     ];
 
@@ -584,7 +589,9 @@ export class InvestmentService {
       const existingPlan = await InvestmentPlan.findOne({ name: plan.name }).exec();
       if (existingPlan) {
         existingPlan.minInvestment = plan.minInvestment;
+        existingPlan.duration = plan.duration;
         existingPlan.expectedReturn = plan.expectedReturn;
+        existingPlan.status = plan.status;
         await existingPlan.save();
       } else {
         await InvestmentPlan.create(plan);

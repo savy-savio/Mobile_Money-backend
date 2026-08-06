@@ -34,6 +34,14 @@ router.get('/user/:userId/balance-details', adminController_1.default.getUserBal
  */
 router.put('/user/:userId/update-savings-balance', adminController_1.default.updateUserSavingsBalance);
 /**
+ * @route   PUT /api/admin/user/:userId/update-investment-balance
+ * @desc    Update a user's investment current value and notify them by email
+ * @params  userId
+ * @body    amount (number), investmentId (string - optional), reason (string - optional)
+ * @private (requires JWT + Admin role)
+ */
+router.put('/user/:userId/update-investment-balance', adminController_1.default.updateUserInvestmentBalance);
+/**
  * @route   GET /api/admin/audit-logs
  * @desc    Get admin audit logs of all admin actions
  * @query   page, limit, actionType, userId

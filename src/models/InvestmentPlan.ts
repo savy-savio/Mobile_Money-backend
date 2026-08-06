@@ -32,10 +32,13 @@ const investmentPlanSchema = new Schema<IInvestmentPlan>(
     minInvestment: {
       type: Number,
       required: true,
+      min: 50,
     },
     duration: {
       type: Number,
       required: true,
+      min: 3,
+      max: 5,
     },
     riskLevel: {
       type: String,
@@ -45,6 +48,8 @@ const investmentPlanSchema = new Schema<IInvestmentPlan>(
     expectedReturn: {
       type: Number,
       required: true,
+      min: 40,
+      max: 60,
     },
     assetAllocation: {
       equities: {
