@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import User from '../models/User';
 import UserInvestment from '../models/UserInvestment';
+import InvestmentPlan from '../models/InvestmentPlan';
 import SavingsPlan from '../models/SavingsPlan';
 import AdminAuditLog from '../models/AdminAuditLog';
 import investmentService from '../services/investmentService';
@@ -374,22 +375,80 @@ export class AdminController {
       const investmentQuery: Record<string, unknown> = { userId, status: 'active' };
       if (investmentId) investmentQuery._id = investmentId;
       const investments = await UserInvestment.find(investmentQuery);
-      if (investments.length === 0) {
-        res.status(400).json({ success: false, message: 'User has no matching active investments' });
-        return;
+
+      let targetInvestment = investments.reduce((prev, current) =>
+        prev.currentValue > current.currentValue ? prev : current
+      , null as any);
+      let createdInvestment = false;
+
+      // If the user has no investment, create one from the first active plan.
+      if (!targetInvestment) {
+        if (amount < 0) {
+          res.status(400).json({ success: false, message: 'Cannot decrease a balance when the user has no investment' });
+          return;
+        }
+
+        const plan = await InvestmentPlan.findOne({ status: 'active' }).sort({ createdAt: 1 });
+        if (!plan) {
+          res.status(400).json({ success: false, message: 'No active investment plan is available' });
+          return;
+        }
+
+        const initialBalance = Math.round(amount * 100) / 100;
+        const investmentDate = new Date();
+        const maturityDate = new Date(investmentDate);
+        maturityDate.setMonth(maturityDate.getMonth() + plan.duration);
+
+        targetInvestment = new UserInvestment({
+          userId,
+          planId: plan._id,
+          planName: plan.name,
+          amountInvested: initialBalance,
+          currentValue: initialBalance,
+          gain: 0,
+          totalGain: 0,
+          gainPercentage: 0,
+          monthlyPerformance: [],
+          transactions: [{
+            type: 'buy',
+            amount: initialBalance,
+            valueBefore: 0,
+            valueAfter: initialBalance,
+            description: `Admin investment balance adjustment of $${initialBalance}`,
+            timestamp: investmentDate,
+          }],
+          investmentDate,
+          maturityDate,
+          status: 'active',
+        });
+        await targetInvestment.save();
+        await User.findByIdAndUpdate(userId, { $addToSet: { investments: targetInvestment._id } });
+        createdInvestment = true;
+      } else {
+        const investedBefore = targetInvestment.amountInvested;
+        const valueBefore = targetInvestment.currentValue;
+        const investedAfter = Math.max(0, Math.round((investedBefore + amount) * 100) / 100);
+        const valueAfter = Math.max(0, Math.round((valueBefore + amount) * 100) / 100);
+
+        targetInvestment.amountInvested = investedAfter;
+        targetInvestment.currentValue = valueAfter;
+        targetInvestment.totalGain = Math.round((valueAfter - investedAfter) * 100) / 100;
+        targetInvestment.gainPercentage = investedAfter > 0
+          ? Math.round((targetInvestment.totalGain / investedAfter) * 10000) / 100
+          : 0;
+        targetInvestment.transactions.push({
+          type: amount >= 0 ? 'buy' : 'sell',
+          amount: Math.abs(amount),
+          valueBefore,
+          valueAfter,
+          description: `Admin investment balance adjustment of $${amount}`,
+          timestamp: new Date(),
+        } as any);
+        await targetInvestment.save();
       }
 
-      const targetInvestment = investments.reduce((prev, current) =>
-        prev.currentValue > current.currentValue ? prev : current
-      );
-      const balanceBefore = targetInvestment.currentValue;
-      const balanceAfter = Math.max(0, Math.round((balanceBefore + amount) * 100) / 100);
-      targetInvestment.currentValue = balanceAfter;
-      targetInvestment.totalGain = Math.round((balanceAfter - targetInvestment.amountInvested) * 100) / 100;
-      targetInvestment.gainPercentage = targetInvestment.amountInvested > 0
-        ? Math.round((targetInvestment.totalGain / targetInvestment.amountInvested) * 10000) / 100
-        : 0;
-      await targetInvestment.save();
+      const balanceBefore = targetInvestment.currentValue - amount;
+      const balanceAfter = targetInvestment.currentValue;
 
       try {
         if (user.email) {
@@ -418,6 +477,9 @@ export class AdminController {
             amountChanged: amount,
             balanceBefore,
             balanceAfter,
+            amountInvested: targetInvestment.amountInvested,
+            currentValue: targetInvestment.currentValue,
+            createdInvestment,
             reason: reason || 'No reason provided',
           },
           timestamp: new Date(),
