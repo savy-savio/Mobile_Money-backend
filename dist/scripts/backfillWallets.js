@@ -30,7 +30,7 @@ async function backfillWallets() {
                 continue;
             }
             try {
-                const wallet = await walletService_1.default.createWalletForUser(user._id.toString(), user.currency || 'NGN');
+                const wallet = await walletService_1.default.createWalletForUser(user._id.toString(), user.currency || '$');
                 console.log(`[BACKFILL] Created wallet ${wallet.accountNumber} for ${user.email} (${user._id})`);
                 created++;
             }

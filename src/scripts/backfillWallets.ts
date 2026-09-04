@@ -35,7 +35,7 @@ async function backfillWallets() {
       try {
         const wallet = await walletService.createWalletForUser(
           user._id.toString(),
-          user.currency || 'NGN'
+          user.currency || '$'
         );
         console.log(
           `[BACKFILL] Created wallet ${wallet.accountNumber} for ${user.email} (${user._id})`

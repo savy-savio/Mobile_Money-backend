@@ -404,7 +404,7 @@ class EmailService {
               <div class="header">${this.logoHeaderHtml()}</div>
               <h2>Savings Balance Updated</h2>
               <p>Hi ${fullName},</p>
-              <p>An administrator has updated your Crown Ledger savings balance.</p>
+              <p>Your savings balance has been updated.</p>
               <div class="update-box">
                 <p><strong>Update Details:</strong></p>
                 <p>Savings Plan: <strong>${planName}</strong></p>
@@ -445,7 +445,7 @@ class EmailService {
         <div class="header">${this.logoHeaderHtml()}</div>
         <h2>Investment Balance Updated</h2>
         <p>Hi ${fullName},</p>
-        <p>An administrator has updated your Crown Ledger investment balance.</p>
+        <p>Your investment balance has been updated.</p>
         <div class="update-box">
           <p><strong>Investment Plan:</strong> ${planName}</p>
           <p><strong>Amount ${direction}:</strong> $${money(Math.abs(amountChanged))}</p>
@@ -792,7 +792,7 @@ class EmailService {
         <div class="header">${this.logoHeaderHtml()}</div>
         <h2>Wallet Balance Updated</h2>
         <p>Hi ${fullName},</p>
-        <p>An administrator has ${direction} your Crown Ledger wallet.</p>
+        <p>Your Crown Ledger wallet has been ${direction}.</p>
         <div class="update-box">
           <p><strong>Account Number:</strong> ${accountNumber}</p>
           <p><strong>Amount ${direction}:</strong> $${money(Math.abs(amountChanged))}</p>
