@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import User from '../models/User';
 import tokenService from '../services/tokenService';
 import emailService from '../services/emailService';
+import walletService from '../services/walletService';
 import { PasswordUtils, PinUtils, EmailUtils, UsernameUtils, PhoneUtils } from '../utils/helpers';
 
 export class AuthController {
@@ -126,6 +127,16 @@ export class AuthController {
         isEmailVerified: false,
       });
 
+      // Auto-create a wallet + account number for the new user.
+      // Wallet creation failure should not block signup — log and continue;
+      // it can be backfilled by an admin job if it ever happens.
+      let wallet;
+      try {
+        wallet = await walletService.createWalletForUser(newUser._id.toString(), currency);
+      } catch (walletError) {
+        console.error('[AUTH] Error creating wallet for new user:', walletError);
+      }
+
       // Generate verification link
       const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}&email=${normalizedEmail}`;
 
@@ -146,6 +157,7 @@ export class AuthController {
           userId: newUser._id,
           email: newUser.email,
           username: newUser.username,
+          accountNumber: wallet?.accountNumber,
         },
       });
     } catch (error: any) {

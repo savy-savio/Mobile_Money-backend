@@ -34,46 +34,35 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const AdminAuditLogSchema = new mongoose_1.Schema({
-    adminId: {
+const walletSchema = new mongoose_1.Schema({
+    userId: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
+        unique: true,
         index: true,
     },
-    actionType: {
+    accountNumber: {
         type: String,
         required: true,
-        enum: [
-            'update_savings_balance',
-            'update_investment_balance',
-            'credit_wallet',
-            'approve_withdrawal',
-            'reject_withdrawal',
-            'view_user_details',
-            'modify_user_status',
-            'other',
-        ],
+        unique: true,
         index: true,
     },
-    targetUserId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'User',
+    balance: {
+        type: Number,
         required: true,
-        index: true,
+        default: 0,
+        min: [0, 'Balance cannot be negative'],
     },
-    details: {
-        type: mongoose_1.Schema.Types.Mixed,
+    currency: {
+        type: String,
         required: true,
+        default: 'USD',
     },
-    timestamp: {
-        type: Date,
-        default: () => new Date(),
-        index: true,
+    status: {
+        type: String,
+        enum: ['active', 'frozen'],
+        default: 'active',
     },
-}, { timestamps: false });
-// Index for efficient querying
-AdminAuditLogSchema.index({ adminId: 1, timestamp: -1 });
-AdminAuditLogSchema.index({ targetUserId: 1, timestamp: -1 });
-AdminAuditLogSchema.index({ actionType: 1, timestamp: -1 });
-exports.default = mongoose_1.default.model('AdminAuditLog', AdminAuditLogSchema);
+}, { timestamps: true });
+exports.default = mongoose_1.default.model('Wallet', walletSchema);

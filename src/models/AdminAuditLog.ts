@@ -24,6 +24,9 @@ const AdminAuditLogSchema = new Schema<IAdminAuditLog>(
       enum: [
         'update_savings_balance',
         'update_investment_balance',
+        'credit_wallet',
+        'approve_withdrawal',
+        'reject_withdrawal',
         'view_user_details',
         'modify_user_status',
         'other',

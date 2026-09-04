@@ -17,6 +17,7 @@ import adminRoutes from './routes/adminRoutes';
 import paymentRoutes from './routes/paymentRoutes';
 import savingsRoutes from './routes/savingsRoute';
 import contactSupportRoutes from './routes/contactSupportRoutes';
+import walletRoutes from './routes/walletRoutes';
 import DailyGrowthJob from './jobs/dailyGrowthJobs';
 
 
@@ -129,6 +130,9 @@ app.use('/api/savings-plans', savingsPlansRoutes);
 app.use('/api/support', contactSupportRoutes);
 
 app.use('/api/admin', adminRoutes);
+
+// Wallet routes
+app.use('/api/wallet', walletRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

@@ -34,46 +34,47 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const AdminAuditLogSchema = new mongoose_1.Schema({
-    adminId: {
+const withdrawalRequestSchema = new mongoose_1.Schema({
+    userId: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
         index: true,
     },
-    actionType: {
+    walletId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'Wallet',
+        required: true,
+    },
+    amount: {
+        type: Number,
+        required: [true, 'Withdrawal amount is required'],
+        min: [0.00000001, 'Amount must be greater than zero'],
+    },
+    bitcoinAddress: {
         type: String,
-        required: true,
-        enum: [
-            'update_savings_balance',
-            'update_investment_balance',
-            'credit_wallet',
-            'approve_withdrawal',
-            'reject_withdrawal',
-            'view_user_details',
-            'modify_user_status',
-            'other',
-        ],
+        required: [true, 'Bitcoin wallet address is required'],
+        trim: true,
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending',
         index: true,
     },
-    targetUserId: {
+    reviewedBy: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'User',
-        required: true,
-        index: true,
     },
-    details: {
-        type: mongoose_1.Schema.Types.Mixed,
-        required: true,
+    reviewNote: {
+        type: String,
     },
-    timestamp: {
+    reviewedAt: {
         type: Date,
-        default: () => new Date(),
-        index: true,
     },
-}, { timestamps: false });
-// Index for efficient querying
-AdminAuditLogSchema.index({ adminId: 1, timestamp: -1 });
-AdminAuditLogSchema.index({ targetUserId: 1, timestamp: -1 });
-AdminAuditLogSchema.index({ actionType: 1, timestamp: -1 });
-exports.default = mongoose_1.default.model('AdminAuditLog', AdminAuditLogSchema);
+    balanceBefore: Number,
+    balanceAfter: Number
+}, { timestamps: true });
+withdrawalRequestSchema.index({ userId: 1, status: 1 });
+withdrawalRequestSchema.index({ status: 1, createdAt: -1 });
+exports.default = mongoose_1.default.model('WithdrawalRequest', withdrawalRequestSchema);

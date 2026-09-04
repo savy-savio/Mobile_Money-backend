@@ -159,3 +159,31 @@ export const validateContactSupport = (req: Request, res: Response, next: NextFu
 
   next();
 };
+
+const BTC_ADDRESS_REGEX =
+  /^(1[a-km-zA-HJ-NP-Z1-9]{25,34}|3[a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-z0-9]{25,90})$/;
+
+export const validateWithdrawalRequest = (req: Request, res: Response, next: NextFunction): void => {
+  const { amount, bitcoinAddress } = req.body;
+
+  const errors: string[] = [];
+
+  if (amount === undefined || amount === null) {
+    errors.push('Amount is required');
+  } else if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0) {
+    errors.push('Amount must be a positive number');
+  }
+
+  if (!bitcoinAddress || typeof bitcoinAddress !== 'string' || !bitcoinAddress.trim()) {
+    errors.push('Bitcoin wallet address is required');
+  } else if (!BTC_ADDRESS_REGEX.test(bitcoinAddress.trim())) {
+    errors.push('Please provide a valid Bitcoin wallet address');
+  }
+
+  if (errors.length > 0) {
+    res.status(400).json({ success: false, message: 'Validation errors', errors });
+    return;
+  }
+
+  next();
+};

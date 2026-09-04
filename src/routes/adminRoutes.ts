@@ -3,6 +3,7 @@ import AdminController from '../controllers/adminController';
 import { authenticateToken } from '../middleware/authMiddleware';
 import { adminAuthMiddleware } from '../middleware/adminAuthMiddleware';
 
+
 const router = Router();
 
 // All admin routes require authentication and admin role
@@ -63,5 +64,11 @@ router.get('/audit-logs', AdminController.getAuditLogs);
  * @private (requires JWT + Admin role)
  */
 router.get('/dashboard-summary', AdminController.getDashboardSummary);
+
+router.put('/wallet/credit', AdminController.creditWalletByAccountNumber);
+router.get('/withdrawals', AdminController.getWithdrawalRequests);
+router.put('/withdrawals/:withdrawalId/review', AdminController.reviewWithdrawalRequest);
+
+router.get('/wallet/lookup/:accountNumber', AdminController.lookupWalletByAccountNumber);
 
 export default router;

@@ -772,5 +772,137 @@ class EmailService {
       </html>
     `;
     }
+    generateAdminWalletCreditEmailHtml(fullName, amountChanged, balanceBefore, balanceAfter, accountNumber, reason) {
+        const direction = amountChanged >= 0 ? 'credited' : 'debited';
+        const money = (value) => value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return `
+      <!DOCTYPE html><html><head><meta charset="UTF-8">
+      <style>
+            body { font-family: 'DM Sans', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
+            .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+            .header { text-align: center; margin-bottom: 30px; }
+            ${this.logoHeaderStyles()}
+            .update-box { background-color: #FFF7ED; border-left: 4px solid #FA510F; padding: 15px; margin: 20px 0; border-radius: 8px; }
+            .update-box p { color: #7C2D12; margin: 8px 0; }
+            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+          </style>
+      </head>
+      <body><div class="container"><div class="email-body">
+        <div class="header">${this.logoHeaderHtml()}</div>
+        <h2>Wallet Balance Updated</h2>
+        <p>Hi ${fullName},</p>
+        <p>An administrator has ${direction} your Crown Ledger wallet.</p>
+        <div class="update-box">
+          <p><strong>Account Number:</strong> ${accountNumber}</p>
+          <p><strong>Amount ${direction}:</strong> $${money(Math.abs(amountChanged))}</p>
+          <p><strong>Previous Balance:</strong> $${money(balanceBefore)}</p>
+          <p><strong>New Balance:</strong> $${money(balanceAfter)}</p>
+          <p><strong>Reason:</strong> ${reason}</p>
+          <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+        </div>
+        <p>If you do not recognize this change, please contact Crown Ledger support immediately.</p>
+        <div class="footer"><p>&copy; 2026 Crown Ledger. All rights reserved.</p><p>This is an automated email. Please do not reply.</p></div>
+      </div></div></body></html>
+    `;
+    }
+    generateWithdrawalRequestAdminEmailHtml(userFullName, accountNumber, amount, bitcoinAddress) {
+        const money = (value) => value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: 'DM Sans', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 700px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
+            .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+            .header { border-bottom: 2px solid #FA510F; padding-bottom: 15px; margin-bottom: 20px; }
+            .ticket-info { background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin: 15px 0; }
+            .info-row { display: flex; justify-content: space-between; padding: 8px 0; }
+            .address-box { font-family: monospace; background: #f0f0f0; padding: 10px; border-radius: 6px; word-break: break-all; margin: 10px 0; }
+            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="email-body">
+              <div class="header">
+                <h2>New Withdrawal Request Pending Review</h2>
+              </div>
+              <div class="ticket-info">
+                <div class="info-row"><span><strong>User:</strong></span><span>${userFullName}</span></div>
+                <div class="info-row"><span><strong>Account Number:</strong></span><span>${accountNumber}</span></div>
+                <div class="info-row"><span><strong>Amount Requested:</strong></span><span>$${money(amount)}</span></div>
+                <div class="info-row"><span><strong>Submitted:</strong></span><span>${new Date().toLocaleString()}</span></div>
+              </div>
+              <p><strong>Bitcoin Wallet Address:</strong></p>
+              <div class="address-box">${bitcoinAddress}</div>
+              <p><strong>Action Required:</strong> Please review this request in the admin dashboard and approve or reject it.</p>
+              <div class="footer">
+                <p>Crown Ledger Admin Management System</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    }
+    generateWithdrawalReviewedEmailHtml(fullName, amount, bitcoinAddress, status, note) {
+        const money = (value) => value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const isApproved = status === 'approved';
+        const boxColor = isApproved ? '#F0FDF4' : '#FEF2F2';
+        const borderColor = isApproved ? '#10B981' : '#DC2626';
+        const textColor = isApproved ? '#065F46' : '#991B1B';
+        return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: 'DM Sans', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg,#F8F9FC 0%,#EEF2FF 100%); }
+            .email-body { background-color: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+            .header { text-align: center; margin-bottom: 30px; }
+            ${this.logoHeaderStyles()}
+            .content { margin-bottom: 30px; }
+            .status-box { background-color: ${boxColor}; border-left: 4px solid ${borderColor}; padding: 15px; margin: 20px 0; border-radius: 8px; }
+            .status-box p { color: ${textColor}; margin: 8px 0; }
+            .address-box { font-family: monospace; background: #f0f0f0; padding: 10px; border-radius: 6px; word-break: break-all; margin: 10px 0; font-size: 13px; }
+            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="email-body">
+              <div class="header">
+                ${this.logoHeaderHtml()}
+              </div>
+              <div class="content">
+                <h2>Withdrawal Request ${isApproved ? 'Approved' : 'Rejected'}</h2>
+                <p>Hi ${fullName},</p>
+                <p>Your Bitcoin withdrawal request has been ${isApproved ? 'approved and processed' : 'rejected'} by our team.</p>
+                <div class="status-box">
+                  <p><strong>Amount:</strong> $${money(amount)}</p>
+                  <p><strong>Status:</strong> ${isApproved ? 'Approved' : 'Rejected'}</p>
+                  ${note ? `<p><strong>Note:</strong> ${note}</p>` : ''}
+                  <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+                </div>
+                <p><strong>Destination Address:</strong></p>
+                <div class="address-box">${bitcoinAddress}</div>
+                ${isApproved
+            ? '<p>Your funds are on their way. If you don\'t see them arrive shortly, please contact support.</p>'
+            : '<p>If you believe this was a mistake or have questions, please contact our support team.</p>'}
+              </div>
+              <div class="footer">
+                <p>&copy; 2026 Crown Ledger. All rights reserved.</p>
+                <p>This is an automated email. Please do not reply.</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    }
 }
 exports.default = new EmailService();

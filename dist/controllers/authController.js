@@ -7,6 +7,7 @@ exports.AuthController = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const tokenService_1 = __importDefault(require("../services/tokenService"));
 const emailService_1 = __importDefault(require("../services/emailService"));
+const walletService_1 = __importDefault(require("../services/walletService"));
 const helpers_1 = require("../utils/helpers");
 class AuthController {
     // SIGNUP
@@ -100,6 +101,16 @@ class AuthController {
                 agreedToTerms: true,
                 isEmailVerified: false,
             });
+            // Auto-create a wallet + account number for the new user.
+            // Wallet creation failure should not block signup — log and continue;
+            // it can be backfilled by an admin job if it ever happens.
+            let wallet;
+            try {
+                wallet = await walletService_1.default.createWalletForUser(newUser._id.toString(), currency);
+            }
+            catch (walletError) {
+                console.error('[AUTH] Error creating wallet for new user:', walletError);
+            }
             // Generate verification link
             const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}&email=${normalizedEmail}`;
             // Send verification email
@@ -117,6 +128,7 @@ class AuthController {
                     userId: newUser._id,
                     email: newUser.email,
                     username: newUser.username,
+                    accountNumber: wallet?.accountNumber,
                 },
             });
         }

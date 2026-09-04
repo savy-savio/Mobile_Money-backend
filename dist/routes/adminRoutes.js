@@ -54,4 +54,8 @@ router.get('/audit-logs', adminController_1.default.getAuditLogs);
  * @private (requires JWT + Admin role)
  */
 router.get('/dashboard-summary', adminController_1.default.getDashboardSummary);
+router.put('/wallet/credit', adminController_1.default.creditWalletByAccountNumber);
+router.get('/withdrawals', adminController_1.default.getWithdrawalRequests);
+router.put('/withdrawals/:withdrawalId/review', adminController_1.default.reviewWithdrawalRequest);
+router.get('/wallet/lookup/:accountNumber', adminController_1.default.lookupWalletByAccountNumber);
 exports.default = router;

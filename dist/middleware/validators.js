@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateContactSupport = exports.validateChangePassword = exports.validateRefreshToken = exports.validateVerifyEmail = exports.validateResetPassword = exports.validateForgotPassword = exports.validateLogin = exports.validateSignup = void 0;
+exports.validateWithdrawalRequest = exports.validateContactSupport = exports.validateChangePassword = exports.validateRefreshToken = exports.validateVerifyEmail = exports.validateResetPassword = exports.validateForgotPassword = exports.validateLogin = exports.validateSignup = void 0;
 const validateSignup = (req, res, next) => {
     const { firstName, lastName, username, email, phoneNumber, country, currency, accountType, pin, password, confirmPassword, agreedToTerms } = req.body;
     const errors = [];
@@ -150,3 +150,26 @@ const validateContactSupport = (req, res, next) => {
     next();
 };
 exports.validateContactSupport = validateContactSupport;
+const BTC_ADDRESS_REGEX = /^(1[a-km-zA-HJ-NP-Z1-9]{25,34}|3[a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-z0-9]{25,90})$/;
+const validateWithdrawalRequest = (req, res, next) => {
+    const { amount, bitcoinAddress } = req.body;
+    const errors = [];
+    if (amount === undefined || amount === null) {
+        errors.push('Amount is required');
+    }
+    else if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0) {
+        errors.push('Amount must be a positive number');
+    }
+    if (!bitcoinAddress || typeof bitcoinAddress !== 'string' || !bitcoinAddress.trim()) {
+        errors.push('Bitcoin wallet address is required');
+    }
+    else if (!BTC_ADDRESS_REGEX.test(bitcoinAddress.trim())) {
+        errors.push('Please provide a valid Bitcoin wallet address');
+    }
+    if (errors.length > 0) {
+        res.status(400).json({ success: false, message: 'Validation errors', errors });
+        return;
+    }
+    next();
+};
+exports.validateWithdrawalRequest = validateWithdrawalRequest;

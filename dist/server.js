@@ -22,6 +22,7 @@ const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 const paymentRoutes_1 = __importDefault(require("./routes/paymentRoutes"));
 const savingsRoute_1 = __importDefault(require("./routes/savingsRoute"));
 const contactSupportRoutes_1 = __importDefault(require("./routes/contactSupportRoutes"));
+const walletRoutes_1 = __importDefault(require("./routes/walletRoutes"));
 const dailyGrowthJobs_1 = __importDefault(require("./jobs/dailyGrowthJobs"));
 const app = (0, express_1.default)();
 const PORT = process.env.BACKEND_PORT || 5000;
@@ -111,6 +112,8 @@ app.use('/api/savings-plans', savingsPlansRoutes_1.default);
 // Contact Support routes
 app.use('/api/support', contactSupportRoutes_1.default);
 app.use('/api/admin', adminRoutes_1.default);
+// Wallet routes
+app.use('/api/wallet', walletRoutes_1.default);
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({
