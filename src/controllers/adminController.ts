@@ -390,9 +390,9 @@ export class AdminController {
       if (investmentId) investmentQuery._id = investmentId;
       const investments = await UserInvestment.find(investmentQuery);
 
-      let targetInvestment = investments.reduce((prev, current) =>
-        prev.currentValue > current.currentValue ? prev : current
-      , null as any);
+      let targetInvestment = investments.length
+        ? investments.reduce((prev, current) => (prev.currentValue > current.currentValue ? prev : current))
+        : null;
       let createdInvestment = false;
 
       // If the user has no investment, create one from the first active plan.
