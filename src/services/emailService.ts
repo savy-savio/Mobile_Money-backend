@@ -1016,7 +1016,7 @@ class EmailService {
             .logo-table { margin: 0 auto; border-collapse: collapse; }
             .logo-table td { vertical-align: middle; padding: 0; }
             .logo-img { width: 36px; height: 36px; display: block; }
-            .logo-text-cell { padding-left: 10px; }
+            .logo-text-cell { padding-left: 14px; }
             .logo-text { font-size: 20px; font-weight: 800; color: #F4F4F5; white-space: nowrap; }
             .logo-text .brand { color: #FA510F; }
             .email-body {
