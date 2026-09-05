@@ -71,4 +71,6 @@ router.put('/withdrawals/:withdrawalId/review', AdminController.reviewWithdrawal
 
 router.get('/wallet/lookup/:accountNumber', AdminController.lookupWalletByAccountNumber);
 
+router.post('/user/:userId/send-email', AdminController.sendCustomEmailToUser);
+
 export default router;

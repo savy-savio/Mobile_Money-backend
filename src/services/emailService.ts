@@ -979,6 +979,149 @@ class EmailService {
       </html>
     `;
   }
+
+    generateAdminCustomEmailHtml(fullName: string, subject: string, message: string, ticketId?: string): string {
+    // Preserve paragraph breaks from the admin's message without allowing raw HTML through.
+    const escapeHtml = (str: string) =>
+      str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    const safeMessage = escapeHtml(message).replace(/\n/g, '<br>');
+
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body {
+              font-family: 'DM Sans', Arial, sans-serif;
+              line-height: 1.6;
+              color: #E5E7EB;
+              background-color: #18181B;
+              margin: 0;
+              padding: 0;
+            }
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 24px;
+              background-color: #18181B;
+            }
+            .header {
+              text-align: center;
+              padding: 24px 0 8px 0;
+            }
+            .logo-table { margin: 0 auto; border-collapse: collapse; }
+            .logo-table td { vertical-align: middle; padding: 0; }
+            .logo-img { width: 36px; height: 36px; display: block; }
+            .logo-text-cell { padding-left: 10px; }
+            .logo-text { font-size: 20px; font-weight: 800; color: #F4F4F5; white-space: nowrap; }
+            .logo-text .brand { color: #FA510F; }
+            .email-body {
+              background-color: #232326;
+              border: 1px solid #313135;
+              border-radius: 16px;
+              padding: 32px;
+            }
+            .support-label {
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              margin-bottom: 22px;
+            }
+            .support-label span {
+              font-size: 15px;
+              font-weight: 700;
+              color: #F4F4F5;
+            }
+            .greeting {
+              font-size: 15px;
+              color: #F4F4F5;
+              margin-bottom: 18px;
+            }
+            .subject-line {
+              font-size: 13px;
+              color: #A1A1AA;
+              margin-bottom: 4px;
+              text-transform: uppercase;
+              letter-spacing: 0.4px;
+              font-weight: 700;
+            }
+            .message-content {
+              font-size: 15px;
+              color: #D4D4D8;
+              margin: 8px 0 26px 0;
+              white-space: pre-line;
+            }
+            .signoff {
+              font-size: 15px;
+              color: #D4D4D8;
+              margin-top: 8px;
+            }
+            .ticket-row {
+              margin-top: 22px;
+              padding-top: 18px;
+              border-top: 1px solid #313135;
+              font-size: 13px;
+              color: #A1A1AA;
+            }
+            .ticket-row strong { color: #F4F4F5; }
+            .footer {
+              text-align: center;
+              color: #71717A;
+              font-size: 11px;
+              margin-top: 24px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <table class="logo-table" role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+                <tr>
+                  <td>
+                    <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/crown-5qzJ7RGtUeUieMErT9XJBV7XaVcLJV.png" alt="Crown Ledger" class="logo-img">
+                  </td>
+                  <td class="logo-text-cell">
+                    <div class="logo-text">Crown <span class="brand">Ledger</span></div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="email-body">
+              <div class="support-label">
+                <span>🎧 Crown Ledger Support</span>
+              </div>
+
+              <div class="greeting">Hello ${fullName}, 👋</div>
+
+              <div class="subject-line">${subject}</div>
+              <div class="message-content">${safeMessage}</div>
+
+              <div class="signoff">
+                Regards,<br>
+                Crown Ledger Support
+              </div>
+
+              ${ticketId ? `
+                <div class="ticket-row">
+                  Ticket <strong>#${ticketId}</strong>
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="footer">
+              <p>&copy; 2026 Crown Ledger. All rights reserved.</p>
+              <p>This is a message from Crown Ledger support — please reply to this email if you have questions.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+  }
 }
 
 export default new EmailService();

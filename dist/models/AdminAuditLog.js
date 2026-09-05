@@ -50,6 +50,7 @@ const AdminAuditLogSchema = new mongoose_1.Schema({
             'credit_wallet',
             'approve_withdrawal',
             'reject_withdrawal',
+            'send_custom_email',
             'view_user_details',
             'modify_user_status',
             'other',

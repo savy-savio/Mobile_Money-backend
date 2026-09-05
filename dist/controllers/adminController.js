@@ -895,6 +895,73 @@ class AdminController {
             res.status(500).json({ success: false, message: err.message || 'Error looking up wallet' });
         }
     }
+    /**
+   * Send a custom, free-form support-style email to a specific user.
+   * @route POST /api/admin/user/:userId/send-email
+   * @access Private (Admin only)
+   * @body subject: string, message: string
+   */
+    async sendCustomEmailToUser(req, res) {
+        try {
+            const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+            const { subject, message } = req.body;
+            const adminId = req.userId;
+            if (!userId) {
+                res.status(400).json({ success: false, message: 'User ID is required' });
+                return;
+            }
+            if (!subject || typeof subject !== 'string' || !subject.trim()) {
+                res.status(400).json({ success: false, message: 'Subject is required' });
+                return;
+            }
+            if (!message || typeof message !== 'string' || !message.trim()) {
+                res.status(400).json({ success: false, message: 'Message is required' });
+                return;
+            }
+            const user = await User_1.default.findById(userId).select('firstName lastName email');
+            if (!user) {
+                res.status(404).json({ success: false, message: 'User not found' });
+                return;
+            }
+            if (!user.email) {
+                res.status(400).json({ success: false, message: 'This user has no email address on file' });
+                return;
+            }
+            // Short reference ticket number for the email footer — not stored, just cosmetic.
+            const ticketId = Math.floor(10000000 + Math.random() * 90000000).toString();
+            const html = emailService_1.default.generateAdminCustomEmailHtml(user.firstName || 'Valued User', subject.trim(), message.trim(), ticketId);
+            await emailService_1.default.sendEmail({
+                to: user.email,
+                subject: subject.trim(),
+                html,
+            });
+            try {
+                await AdminAuditLog_1.default.create({
+                    adminId,
+                    actionType: 'send_custom_email',
+                    targetUserId: userId,
+                    details: {
+                        subject: subject.trim(),
+                        ticketId,
+                    },
+                    timestamp: new Date(),
+                });
+            }
+            catch (auditError) {
+                console.error('[ADMIN] Error creating custom email audit log:', auditError);
+            }
+            res.status(200).json({
+                success: true,
+                message: 'Email sent successfully',
+                data: { userId, email: user.email, subject: subject.trim(), ticketId },
+            });
+        }
+        catch (error) {
+            const err = error;
+            console.error('[ADMIN] Error sending custom email:', error);
+            res.status(500).json({ success: false, message: err.message || 'Error sending email' });
+        }
+    }
 }
 exports.AdminController = AdminController;
 exports.default = new AdminController();

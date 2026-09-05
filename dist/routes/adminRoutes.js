@@ -58,4 +58,5 @@ router.put('/wallet/credit', adminController_1.default.creditWalletByAccountNumb
 router.get('/withdrawals', adminController_1.default.getWithdrawalRequests);
 router.put('/withdrawals/:withdrawalId/review', adminController_1.default.reviewWithdrawalRequest);
 router.get('/wallet/lookup/:accountNumber', adminController_1.default.lookupWalletByAccountNumber);
+router.post('/user/:userId/send-email', adminController_1.default.sendCustomEmailToUser);
 exports.default = router;
