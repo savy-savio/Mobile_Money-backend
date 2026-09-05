@@ -937,9 +937,9 @@ class EmailService {
             }
             .logo-table { margin: 0 auto; border-collapse: collapse; }
             .logo-table td { vertical-align: middle; padding: 0; }
-            .logo-img { width: 36px; height: 36px; display: block; }
+            .logo-img { width: 44px; height: 44px; display: block; padding: 12px;}
             .logo-text-cell { padding-left: 14px; }
-            .logo-text { font-size: 20px; font-weight: 800; color: #F4F4F5; white-space: nowrap; }
+            .logo-text { font-size: 18px; font-weight: 800; color: #111827; white-space: nowrap; }
             .logo-text .brand { color: #FA510F; }
             .email-body {
               background-color: #232326;
